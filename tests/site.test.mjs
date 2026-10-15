@@ -136,9 +136,37 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     }), 'related heading stays under the playlist, not over the player');
     assert.equal(await page.locator('yt-related-chip-cloud-renderer').evaluate(node => getComputedStyle(node).display), 'flex');
     assert.match(await page.locator('#owner-sub-count').innerText(), /4,12 млн/);
-    assert.match(await page.locator('#view-count').innerText(), /^62 тыс\. просмотров$/);
+    assert.match(await page.locator('.vkvk-watch-views').innerText(), /^62 тыс\. просмотров$/);
+    assert.ok(await page.evaluate(() => {
+      const line = document.querySelector('.vkvk-watch-views');
+      const description = document.querySelector('#description');
+      return Boolean(line && description && (line.compareDocumentPosition(description) & Node.DOCUMENT_POSITION_FOLLOWING));
+    }), 'view count stays above the description');
     assert.match(await page.locator('like-button-view-model .yt-spec-button-shape-next__button-text-content').innerText(), /^\d+ тыс\.$/);
     assert.equal(await page.locator('like-button-view-model button').evaluate(node => getComputedStyle(node, '::before').content), '""');
+    assert.match(await page.locator('like-button-view-model button').evaluate(node => getComputedStyle(node, '::before').webkitMaskImage || getComputedStyle(node, '::before').maskImage), /zm\.274|1\.794/);
+    await page.locator('like-button-view-model button').evaluate(node => node.setAttribute('aria-pressed', 'true'));
+    assert.match(await page.locator('like-button-view-model button').evaluate(node => getComputedStyle(node, '::before').webkitMaskImage || getComputedStyle(node, '::before').maskImage), /16\.266 4z/);
+    assert.doesNotMatch(await page.locator('like-button-view-model button').evaluate(node => getComputedStyle(node, '::before').webkitMaskImage || getComputedStyle(node, '::before').maskImage), /zm\.274/);
+    await page.evaluate(() => {
+      document.querySelector('.vkvk-watch-views')?.setAttribute('data-pin', '1');
+      const source = document.querySelector('#view-count');
+      if (source) source.textContent = '70 просмотров';
+      const host = document.createElement('like-button-view-model');
+      host.id = 'shadow-like';
+      const shadow = host.attachShadow({ mode: 'open' });
+      shadow.innerHTML = '<button aria-pressed="true"><span class="yt-spec-button-shape-next__button-text-content">3</span></button>';
+      document.querySelector('ytd-watch-metadata')?.append(host);
+      document.dispatchEvent(new Event('yt-navigate-finish'));
+    });
+    await page.waitForFunction(() => document.querySelector('.vkvk-watch-views')?.textContent?.startsWith('70'));
+    assert.equal(await page.locator('.vkvk-watch-views').getAttribute('data-pin'), '1');
+    await page.waitForFunction(() => document.querySelector('#shadow-like')?.dataset.vkvkLiked === 'true');
+    assert.match(await page.locator('#shadow-like').evaluate(node => {
+      const button = node.shadowRoot?.querySelector('button');
+      const style = button ? getComputedStyle(button, '::before') : null;
+      return `${style?.webkitMaskImage || ''} ${style?.backgroundColor || ''} ${getComputedStyle(node, '::before').webkitMaskImage || ''}`;
+    }), /16\.266 4z/);
     await page.waitForSelector('#vkvk-recsys-toast.vkvk-recsys-toast--show');
     assert.equal(await page.locator('.ytp-size-button').evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.locator('.ytp-miniplayer-button').evaluate(node => getComputedStyle(node).display), 'none');

@@ -188,7 +188,7 @@ function renderShell(): void {
   const panel = node('aside', 'vkvk-stats-panel');
   panel.id = 'vkvk-stats-panel';
   shell.append(top, side, panel);
-  document.body.append(shell);
+  document.documentElement.append(shell);
   document.addEventListener('click', () => {
     const menu = shell?.querySelector<HTMLElement>('.vkvk-create-menu');
     if (menu) menu.hidden = true;
@@ -430,7 +430,10 @@ function alignStudioSurface(): void {
     root.style.setProperty('max-width', 'none', 'important');
     root.style.setProperty('position', 'relative', 'important');
     root.style.setProperty('left', `${edge}px`, 'important');
-    root.style.setProperty('overflow', 'visible', 'important');
+    root.style.setProperty('overflow-x', 'hidden', 'important');
+    root.style.setProperty('overflow-y', 'auto', 'important');
+    root.style.setProperty('height', '100vh', 'important');
+    root.style.setProperty('max-height', '100vh', 'important');
     root.style.setProperty('box-sizing', 'border-box', 'important');
   });
   document.querySelectorAll<HTMLElement>('ytcp-video-row, ytcp-video-list-row').forEach(row => {
@@ -474,9 +477,9 @@ function refresh(): void {
   syncChannel();
   document.documentElement.dataset.vkvkRoute = route;
   if (shell) {
-    shell.style.left = '0px';
-    const delta = shell.getBoundingClientRect().left;
-    if (Math.abs(delta) > 0.5) shell.style.left = `${-delta}px`;
+    if (shell.parentElement !== document.documentElement) document.documentElement.append(shell);
+    shell.style.setProperty('left', '0px', 'important');
+    shell.style.setProperty('transform', 'none', 'important');
   }
   document.documentElement.classList.toggle('vkvk-modal-open', hasVisibleDialog());
   alignStudioSurface();
@@ -523,6 +526,44 @@ chrome.storage.onChanged.addListener(changes => {
   if (changes.statsPanelEnabled) { state.statsPanelEnabled = Boolean(changes.statsPanelEnabled.newValue); renderPanel(); }
   if (changes.preset && changes.preset.newValue !== state.preset) void setPreset(changes.preset.newValue as Preset);
 });
+function wheelPixels(event: WheelEvent): number {
+  if (event.deltaMode === 1) return event.deltaY * 16;
+  if (event.deltaMode === 2) return event.deltaY * window.innerHeight;
+  return event.deltaY;
+}
+function canScrollY(node: HTMLElement, delta: number): boolean {
+  const style = getComputedStyle(node);
+  if (!/(auto|scroll|overlay)/.test(style.overflowY)) return false;
+  if (node.scrollHeight <= node.clientHeight + 2) return false;
+  if (delta > 0) return node.scrollTop + node.clientHeight < node.scrollHeight - 1;
+  if (delta < 0) return node.scrollTop > 0;
+  return false;
+}
+function studioScroller(start: EventTarget | null, delta: number): HTMLElement | null {
+  let node: Node | null = start instanceof Node ? start : null;
+  while (node) {
+    if (node instanceof HTMLElement && !node.closest('#vkvk-studio-shell') && canScrollY(node, delta)) return node;
+    if (node instanceof Element && node.parentElement) node = node.parentElement;
+    else {
+      const root = node.getRootNode();
+      node = root instanceof ShadowRoot ? root.host : null;
+    }
+  }
+  const main = document.querySelector<HTMLElement>('#content') || document.querySelector<HTMLElement>('#main-content');
+  return main && canScrollY(main, delta) ? main : null;
+}
+window.addEventListener('wheel', event => {
+  if (!state?.studioEnabled || event.ctrlKey) return;
+  const target = event.target;
+  if (target instanceof Element && target.closest('.vkvk-side, .vkvk-stats-panel, .vkvk-create-menu, textarea, input, [contenteditable="true"]')) return;
+  const delta = wheelPixels(event);
+  if (!delta) return;
+  const scroller = studioScroller(target, delta);
+  if (!scroller) return;
+  const before = scroller.scrollTop;
+  scroller.scrollTop += delta;
+  if (scroller.scrollTop !== before) event.preventDefault();
+}, { passive: false, capture: true });
 window.addEventListener('popstate', scheduleRefresh);
 document.addEventListener('yt-navigate-finish', scheduleRefresh);
 new MutationObserver(scheduleRefresh).observe(document, { childList: true, subtree: true });

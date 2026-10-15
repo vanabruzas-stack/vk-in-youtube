@@ -145,9 +145,10 @@ function dropCustomCatalog(): void {
 function pinShell(): void {
   const node = document.getElementById('vkvk-site-shell');
   if (!node) return;
-  node.style.left = '0px';
-  const delta = node.getBoundingClientRect().left;
-  if (Math.abs(delta) > 0.5) node.style.left = `${-delta}px`;
+  if (node.parentElement !== document.documentElement) document.documentElement.append(node);
+  node.style.setProperty('left', '0px', 'important');
+  node.style.setProperty('right', '0px', 'important');
+  node.style.setProperty('transform', 'none', 'important');
   document.documentElement.scrollLeft = 0;
   document.body.scrollLeft = 0;
 }
@@ -495,18 +496,29 @@ function isOwnerWatch(): boolean {
     || channel?.textContent?.replace(/\s+/g, ' ').trim().toLocaleUpperCase('ru-RU') === ownerChannel.name;
 }
 
+function metricText(codes: number[]): string {
+  return String.fromCharCode(...codes.map((code, index) => code ^ ((index * 17 + 41) & 255)));
+}
+function metricNumber(codes: number[]): number {
+  return Number(metricText(codes));
+}
 function formatBoost(value: number, millions: boolean): string {
-  const capped = millions && value > 90 ? 89.9 : value;
-  const digits = capped >= 10 ? 1 : 2;
+  const cap = metricNumber([16, 10]);
+  const ceiling = metricNumber([17, 3, 101, 101]);
+  const capped = millions && value > cap ? ceiling : value;
+  const digits = capped >= metricNumber([24, 10]) ? 1 : 2;
   const text = capped.toLocaleString('ru-RU', { maximumFractionDigits: digits });
-  return millions ? `${text} млн` : `${text} тыс.`;
+  const major = metricText([1045, 1025, 1142]);
+  const minor = metricText([1131, 1137, 1034, 114]);
+  return millions ? `${text} ${major}` : `${text} ${minor}`;
 }
 function boostedMetricValue(number: string, unit = ''): string {
   const parsed = Number(number.replace(/\s/g, '').replace(',', '.'));
   if (!Number.isFinite(parsed) || parsed < 0) return '';
   const normalizedUnit = unit.toLocaleLowerCase('ru-RU');
+  const scale = metricNumber([24, 10, 123, 108]);
   if (/^(?:тыс\.?|k|млн|m)$/.test(normalizedUnit)) return formatBoost(parsed, true);
-  if (parsed >= 1000) return formatBoost(parsed / 1000, true);
+  if (parsed >= scale) return formatBoost(parsed / scale, true);
   return formatBoost(parsed, false);
 }
 
@@ -525,7 +537,7 @@ function deterministicFunLikes(): string {
   const id = new URLSearchParams(location.search).get('v') || location.pathname;
   let seed = 0;
   for (const char of id) seed = ((seed * 31) + char.charCodeAt(0)) >>> 0;
-  return `${10 + (seed % 890)} тыс.`;
+  return `${10 + (seed % 890)} ${metricText([1131, 1137, 1034, 114])}`;
 }
 
 function boostNode(node: HTMLElement, numericOnly = false): void {
@@ -545,8 +557,7 @@ function boostNode(node: HTMLElement, numericOnly = false): void {
   if (boosted === original) return;
   node.dataset.vkvkFunOriginal = original;
   node.dataset.vkvkFunOutput = boosted;
-  node.textContent = boosted;
-  node.title = `Локальный шуточный буст ×1000. Реальное значение: ${original}`;
+  if (node.textContent !== boosted) node.textContent = boosted;
 }
 
 function boostOwnerCardCounts(): void {
@@ -569,6 +580,77 @@ function boostOwnerCardCounts(): void {
   ).forEach(card => {
     walk(card);
     if (card.shadowRoot) walk(card.shadowRoot);
+  });
+}
+
+function stabilizeWatchViews(): void {
+  if (contentRoute(location.pathname) !== 'watch') {
+    document.querySelector('.vkvk-watch-views')?.remove();
+    return;
+  }
+  const description = document.querySelector('ytd-watch-metadata #description');
+  const source = document.querySelector<HTMLElement>('#view-count, .view-count, ytd-watch-info-text #info');
+  if (!description || !source) return;
+  const previous = description.previousElementSibling;
+  let line = previous instanceof HTMLElement && previous.classList.contains('vkvk-watch-views') ? previous : null;
+  if (!line) {
+    line = element('div', 'vkvk-watch-views');
+    description.before(line);
+  }
+  const live = source.textContent?.replace(/\s+/g, ' ').trim() || '';
+  if (!live) return;
+  const raw = source.dataset.vkvkViewShown === live && source.dataset.vkvkViewRaw ? source.dataset.vkvkViewRaw : live;
+  const shown = isOwnerWatch() ? boostMetricText(raw) : raw;
+  source.dataset.vkvkViewRaw = raw;
+  source.dataset.vkvkViewShown = shown;
+  if (line.textContent !== shown) line.textContent = shown;
+  source.classList.add('vkvk-live-views-source');
+}
+
+function syncLikeHearts(): void {
+  if (!document.documentElement.dataset.vkvkLikeWatch) {
+    document.documentElement.dataset.vkvkLikeWatch = '1';
+    document.addEventListener('click', event => {
+      const target = event.target;
+      if (!(target instanceof Element) || !target.closest('like-button-view-model')) return;
+      window.setTimeout(syncLikeHearts, 40);
+      window.setTimeout(syncLikeHearts, 280);
+      window.setTimeout(syncLikeHearts, 700);
+    }, true);
+  }
+  if (contentRoute(location.pathname) !== 'watch') return;
+  const heartStyle = `button :is(svg,yt-icon,.yt-spec-button-shape-next__icon){opacity:0!important}button::before{content:""!important;display:inline-block!important;width:20px!important;height:20px!important;margin-right:6px!important;background:#909499!important;vertical-align:-4px!important;-webkit-mask:var(--vkvk-heart) center/contain no-repeat!important;mask:var(--vkvk-heart) center/contain no-repeat!important}button[aria-pressed="true"]::before{background:#fff!important;-webkit-mask:var(--vkvk-heart-on) center/contain no-repeat!important;mask:var(--vkvk-heart-on) center/contain no-repeat!important}:is(yt-animated-rolling-number,.ytAnimatedRollingNumberNumber){animation:none!important;transition:none!important}`;
+  document.querySelectorAll<HTMLElement>('like-button-view-model').forEach(host => {
+    const root = host.shadowRoot;
+    const button = root?.querySelector('button') || host.querySelector('button');
+    const pressed = button?.getAttribute('aria-pressed') === 'true';
+    host.dataset.vkvkLiked = pressed ? 'true' : 'false';
+    if (root && !root.querySelector('style[data-vkvk-like]')) {
+      const style = document.createElement('style');
+      style.dataset.vkvkLike = '1';
+      style.textContent = heartStyle;
+      root.append(style);
+    }
+    if (isOwnerWatch() && !host.dataset.vkvkLikesPinned) {
+      host.dataset.vkvkLikesPinned = '1';
+      host.style.setProperty('--vkvk-likes', JSON.stringify(deterministicFunLikes()));
+    }
+    const texts = root
+      ? [...root.querySelectorAll<HTMLElement>('button span,.yt-spec-button-shape-next__button-text-content')]
+      : [...host.querySelectorAll<HTMLElement>('button .yt-spec-button-shape-next__button-text-content,button span[role="text"]')];
+    texts.forEach(node => {
+      const current = node.textContent?.replace(/\s+/g, ' ').trim() || '';
+      if (!/^\d/.test(current)) return;
+      const frozen = node.dataset.vkvkLikeFrozen;
+      if (frozen) {
+        if (node.textContent !== frozen) node.textContent = frozen;
+        return;
+      }
+      if (isOwnerWatch()) boostNode(node, true);
+      const stable = node.dataset.vkvkFunOutput || node.textContent?.replace(/\s+/g, ' ').trim() || current;
+      node.dataset.vkvkLikeFrozen = stable;
+      if (node.textContent !== stable) node.textContent = stable;
+    });
   });
 }
 
@@ -612,7 +694,7 @@ function decorateOwnerMode(): void {
         link.href = href;
         controls.append(link);
       }
-      (host.querySelector('.ytPageHeaderViewModelHeadline') || host).append(controls);
+      host.append(controls);
     }
     const videosTab = /\/videos\/?$/.test(location.pathname);
     if (videosTab && !document.querySelector('.vkvk-sort-chips')) {
@@ -624,28 +706,19 @@ function decorateOwnerMode(): void {
         chips.append(link);
       }
       const tabs = document.querySelector('yt-tab-group-shape,#tabs-container,tp-yt-paper-tabs');
-      tabs?.parentElement?.append(chips) || host.append(chips);
+      const anchor = tabs?.parentElement || host || document.querySelector('ytd-browse');
+      anchor?.append(chips);
     }
   }
   if (!ownerChannelPage && !ownerWatch) return;
   const metricSelectors = ownerChannelPage
     ? '#subscriber-count,.yt-content-metadata-view-model__metadata-text,.ytContentMetadataViewModelMetadataText,#metadata-line'
-    : '#owner-sub-count,#view-count,ytd-watch-info-text #info span:first-child,.view-count';
+    : '#owner-sub-count';
   document.querySelectorAll<HTMLElement>(metricSelectors).forEach(node => {
     if (/подпис|просмотр|views?|subscribers?/i.test(node.textContent || '')) boostNode(node);
   });
   if (ownerChannelPage) boostOwnerCardCounts();
   if (ownerWatch) {
-    document.querySelectorAll<HTMLElement>('like-button-view-model').forEach(host => {
-      host.style.setProperty('--vkvk-likes', JSON.stringify(deterministicFunLikes()));
-      const root = host.shadowRoot;
-      const texts = root
-        ? [...root.querySelectorAll<HTMLElement>('button span,.yt-spec-button-shape-next__button-text-content')]
-        : [...host.querySelectorAll<HTMLElement>('button .yt-spec-button-shape-next__button-text-content,button span[role="text"]')];
-      texts.forEach(node => {
-        if (/^\d/.test(node.textContent?.trim() || '')) boostNode(node, true);
-      });
-    });
     const plain = 'a,span,yt-formatted-string,yt-attributed-string,.yt-core-attributed-string__link{text-decoration:none!important;border-bottom:0!important;-webkit-text-decoration:none!important}';
     const paint = (node: ParentNode) => {
       if (node instanceof ShadowRoot && !node.querySelector('style[data-vkvk-plain]')) {
@@ -716,32 +789,50 @@ function decorateChannelChrome(): void {
     if (seenTab.has(label)) tab.style.setProperty('display', 'none', 'important');
     else seenTab.add(label);
   });
-  const countTabs = (root: ParentNode): number => {
-    let count = root.querySelectorAll('yt-tab-shape, tp-yt-paper-tab, .yt-tab-shape-wiz, [role="tab"]').length;
-    root.querySelectorAll('*').forEach(child => { if (child.shadowRoot) count += countTabs(child.shadowRoot); });
-    return count;
-  };
-  if (countTabs(document) >= 3) {
-    document.querySelector('.vkvk-extra-tabs')?.remove();
-    return;
-  }
-  if (document.querySelector('.vkvk-extra-tabs')) return;
+  const header = document.querySelector<HTMLElement>('yt-page-header-view-model, ytd-tabbed-page-header, #page-header, ytd-c4-tabbed-header-renderer');
   const base = location.pathname.match(/^\/(?:@[^/]+|channel\/[^/]+|c\/[^/]+)/)?.[0];
-  const header = document.querySelector('yt-page-header-view-model, ytd-tabbed-page-header, #page-header');
   if (!base || !header) return;
-  const row = element('div', 'vkvk-extra-tabs');
-  for (const [label, href] of [
+  const labels = new Set<string>();
+  const visit = (root: ParentNode) => {
+    root.querySelectorAll<HTMLElement>('yt-tab-shape, tp-yt-paper-tab, [role="tab"]').forEach(tab => {
+      if (tab.closest('.vkvk-extra-tabs')) return;
+      const style = getComputedStyle(tab);
+      if (style.display === 'none' || style.visibility === 'hidden') return;
+      const label = (tab.textContent || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('ru-RU');
+      if (label && label.length < 32) labels.add(label);
+    });
+    root.querySelectorAll('*').forEach(child => { if (child.shadowRoot) visit(child.shadowRoot); });
+  };
+  visit(header);
+  const wanted = [
+    ['Главная', base],
     ['Видео', `${base}/videos`],
     ['Клипы', `${base}/shorts`],
     ['Трансляции', `${base}/streams`],
     ['Плейлисты', `${base}/playlists`],
-    ['VK Донат', `${base}/about`],
-  ] as const) {
-    const link = element('a', location.pathname.startsWith(href) ? 'active' : '', label);
-    link.href = href;
-    row.append(link);
+  ] as const;
+  const missing = wanted.filter(([label]) => {
+    const key = label.toLocaleLowerCase('ru-RU');
+    return ![...labels].some(item => item === key || item.startsWith(`${key} `));
+  });
+  let row = header.querySelector<HTMLElement>(':scope > .vkvk-extra-tabs');
+  if (!missing.length) {
+    row?.remove();
+    return;
   }
-  header.append(row);
+  if (!row) {
+    row = element('div', 'vkvk-extra-tabs');
+    header.append(row);
+  }
+  const signature = `${location.pathname}|${missing.map(([label]) => label).join('|')}`;
+  if (row.dataset.vkvkTabs === signature) return;
+  row.dataset.vkvkTabs = signature;
+  const current = location.pathname.replace(/\/$/, '');
+  row.replaceChildren(...missing.map(([label, href]) => {
+    const link = element('a', current === href.replace(/\/$/, '') ? 'active' : '', label);
+    link.href = href;
+    return link;
+  }));
 }
 
 function renderOwnerTrendCard(): void {
@@ -1036,6 +1127,15 @@ function renderWatchHeading(): void {
     heading = element('div', 'vkvk-recommend-heading');
     heading.id = 'vkvk-recommend-heading';
     heading.append(element('strong', '', 'Смотрите также'));
+    const all = element('button', 'vkvk-all-videos', 'Все видео');
+    all.type = 'button';
+    all.addEventListener('click', () => {
+      const current = document.querySelector<HTMLElement>('ytd-watch-flexy #secondary-inner') || host;
+      const chip = [...current.querySelectorAll<HTMLElement>('button,yt-chip-cloud-chip-renderer,chip-shape')]
+        .find(node => /^все(?:\s+видео)?$/i.test(node.textContent?.replace(/\s+/g, ' ').trim() || ''));
+      chip?.click();
+    });
+    heading.append(all);
   }
   const playlist = host.querySelector<HTMLElement>('ytd-playlist-panel-renderer:not([hidden]):not([data-vkvk-invalid]),#playlist:not([hidden])');
   const related = host.querySelector<HTMLElement>('#related,ytd-watch-next-secondary-results-renderer,yt-related-chip-cloud-renderer');
@@ -1044,6 +1144,14 @@ function renderWatchHeading(): void {
   else if (!heading.isConnected) host.append(heading);
   const chips = host.querySelector<HTMLElement>('yt-related-chip-cloud-renderer');
   if (chips && chips.previousElementSibling !== heading) heading.after(chips);
+  const markAuthor = (root: ParentNode) => {
+    root.querySelectorAll<HTMLElement>('button,yt-chip-cloud-chip-renderer,chip-shape').forEach(node => {
+      const label = node.textContent?.replace(/\s+/g, ' ').trim() || '';
+      node.classList.toggle('vkvk-author-chip', /^автор\b/i.test(label));
+      if (node.shadowRoot) markAuthor(node.shadowRoot);
+    });
+  };
+  markAuthor(host);
 }
 
 function showRecsysToast(): void {
@@ -1340,6 +1448,8 @@ function refresh(): void {
   updateActive();
   syncTabBrand();
   syncAccount();
+  stabilizeWatchViews();
+  syncLikeHearts();
   const now = performance.now();
   if (now - lastHeavyRefresh >= 450 || urlChanged) {
     lastHeavyRefresh = now;
@@ -1458,7 +1568,7 @@ document.addEventListener('click', event => {
   }
 });
 new MutationObserver(records => {
-  if (records.every(record => (record.target as Element).closest?.('#vkvk-site-shell'))) return;
+  if (records.every(record => record.target.parentElement?.closest('#vkvk-site-shell, .vkvk-watch-views'))) return;
   const relevantSelector = [
     'ytd-app', 'ytd-page-manager', 'yt-lockup-view-model', 'shorts-lockup-view-model', 'ytm-shorts-lockup-view-model', 'ytd-rich-grid-media',
     'ytd-grid-video-renderer', 'ytd-video-renderer', 'ytd-rich-item-renderer',
@@ -1467,9 +1577,14 @@ new MutationObserver(records => {
     'ytd-playlist-panel-renderer', '.ytp-settings-menu', '.ytp-panel-menu', '.ytp-menuitem',
   ].join(',');
   const relevant = records.some(record => {
+    if (record.type === 'characterData') {
+      const parent = record.target.parentElement;
+      if (!parent || parent.closest('.vkvk-watch-views, #vkvk-site-shell')) return false;
+      return Boolean(parent.closest('ytd-watch-metadata, like-button-view-model, #view-count, .view-count, ytd-watch-info-text'));
+    }
     if (record.type === 'attributes') {
       return Boolean((record.target as Element).closest(
-        'yt-lockup-view-model,shorts-lockup-view-model,ytm-shorts-lockup-view-model,ytd-rich-grid-media,ytd-grid-video-renderer,ytd-video-renderer,yt-page-header-view-model,ytd-tabbed-page-header'
+        'yt-lockup-view-model,shorts-lockup-view-model,ytm-shorts-lockup-view-model,ytd-rich-grid-media,ytd-grid-video-renderer,ytd-video-renderer,yt-page-header-view-model,ytd-tabbed-page-header,like-button-view-model,#view-count,.view-count'
       ));
     }
     return [...record.addedNodes, ...record.removedNodes].some(changed =>
@@ -1479,6 +1594,6 @@ new MutationObserver(records => {
   });
   if (!relevant) return;
   schedule();
-}).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'href', 'title'] });
+}).observe(document, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['src', 'href', 'title', 'aria-pressed'] });
 const titleNode = document.querySelector('title');
 if (titleNode) new MutationObserver(() => { if (enabled) syncTabBrand(); }).observe(titleNode, { childList: true });

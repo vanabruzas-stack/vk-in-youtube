@@ -8,3 +8,5 @@ installer/bin/
 installer/obj/
 *.log
 .DS_Store
+.cursor/
+outputs/*.pdb

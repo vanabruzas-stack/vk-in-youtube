@@ -83,6 +83,15 @@ test('Studio shell keeps native navigation/upload and shows period statistics', 
     assert.equal(await page.locator('ytcp-comment').evaluate(node => getComputedStyle(node).display), 'grid');
     assert.equal(await page.locator('ytcp-comment #body').evaluate(node => getComputedStyle(node).textAlign), 'left');
     assert.equal(await page.locator('#main-content > *').evaluate(node => getComputedStyle(node).marginLeft), '0px');
+    await page.evaluate(() => {
+      const main = document.querySelector('#main-content');
+      const filler = document.createElement('div');
+      filler.style.height = '2400px';
+      main.append(filler);
+    });
+    await page.mouse.move(720, 420);
+    await page.mouse.wheel(0, 500);
+    await page.waitForFunction(() => document.querySelector('#main-content').scrollTop > 40);
   } finally {
     await browser.close();
   }
