@@ -42,11 +42,11 @@ html.vky-site [data-testid="video_spa_header"] {
 html.vky-site [data-testid="video_spa_header"] > div:first-child {
   min-width: 220px !important;
 }
-html.vky-site [data-testid="video_spa_header"] a[aria-label="На главную VK Видео"] {
+html.vky-site [data-vky-logo="1"] {
   min-width: 116px;
   text-decoration: none !important;
 }
-html.vky-site [data-testid="video_spa_header"] a[aria-label="На главную VK Видео"] > svg {
+html.vky-site [data-vky-logo="1"] > svg {
   display: none !important;
 }
 html.vky-site .vky-brand {
@@ -211,3 +211,105 @@ html.vky-site body.live [class*="CatalogShowcaseStream_link"],
 html.vky-site body.live [class*="CatalogShowcaseStream"] img { border-radius: 12px !important; }
 html.vky-site body.live [class*="CatalogShowcaseStream_container"] { border-color: #303030 !important; background: #181818 !important; }
 html.vky-site body.live button:not([class*="Player"]):not([class*="player"]):hover { filter: brightness(1.15); }
+
+/* YouTube's guide is built from native VK destinations, so the links keep working. */
+html.vky-site [data-testid="video_left_menu"],
+html.vky-site body.live [class*="Sidebar_root"] { visibility: hidden !important; }
+html.vky-site #vky-guide {
+  position: fixed;
+  z-index: 100;
+  top: 56px;
+  bottom: 0;
+  left: 0;
+  width: 240px;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 12px 12px 28px;
+  background: #0f0f0f;
+  color: #f1f1f1;
+  font: 14px Roboto, Arial, sans-serif;
+  scrollbar-width: thin;
+  scrollbar-color: #555 transparent;
+}
+html.vky-site #vky-guide .vky-guide-section { padding: 0 0 12px; margin: 0 0 12px; border-bottom: 1px solid #303030; }
+html.vky-site #vky-guide .vky-guide-section:first-child { padding-bottom: 8px; }
+html.vky-site #vky-guide h3 { margin: 8px 12px 8px; font: 600 16px Roboto, Arial, sans-serif; }
+html.vky-site #vky-guide .vky-guide-link {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  color: #f1f1f1;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
+html.vky-site #vky-guide .vky-guide-link:hover,
+html.vky-site #vky-guide .vky-guide-active { background: #272727; }
+html.vky-site #vky-guide .vky-guide-active { font-weight: 600; }
+html.vky-site #vky-guide .vky-guide-icon { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; }
+html.vky-site #vky-guide .vky-guide-icon svg { display: block; }
+html.vky-site #vky-guide .vky-guide-icon img { width: 24px; height: 24px; object-fit: cover; border-radius: 50%; }
+html.vky-site #vky-guide .vky-guide-label { overflow: hidden; text-overflow: ellipsis; }
+html.vky-site #vky-guide[data-collapsed="true"] { width: 72px; padding: 4px 4px 12px; }
+html.vky-site #vky-guide[data-collapsed="true"] .vky-guide-section:not(:first-child) { display: none; }
+html.vky-site #vky-guide[data-collapsed="true"] .vky-guide-section { border: 0; }
+html.vky-site #vky-guide[data-collapsed="true"] .vky-guide-link { flex-direction: column; gap: 6px; justify-content: center; min-height: 72px; padding: 0 2px; font-size: 10px; }
+html.vky-site #vky-guide[data-collapsed="true"] .vky-guide-label { max-width: 66px; }
+html.vky-site:has(:fullscreen) #vky-guide { display: none !important; }
+html.vky-site [data-testid="video_spa_header"] .RightActions__authorsLink { display: none !important; }
+
+/* Replace heart artwork while preserving the site's real like control and count. */
+html.vky-site [data-testid="video_page_like_button"] > span:has(svg[class*="vkuiIcon--like_"]),
+html.vky-site [data-testid="comment-like"] > span:has(svg[class*="vkuiIcon--like_"]) { display: none !important; }
+html.vky-site .vky-thumb-up { display: inline-grid; place-items: center; width: 24px; height: 24px; flex: none; color: #f1f1f1; }
+html.vky-site [data-testid="clips-controls-like-button"] > svg[class*="vkuiIcon--like_"] { display: none !important; }
+html.vky-site [data-testid="clips-controls-like-button"] .vky-thumb-up { width: 28px; height: 28px; }
+html.vky-site [data-testid="comment-like"] .vky-thumb-up { width: 16px; height: 16px; }
+html.vky-site .vky-liked .vky-thumb-up { color: #3ea6ff; }
+html.vky-site [data-testid="video_page_like_button"] { border-radius: 20px 0 0 20px !important; border-right: 1px solid #5a5a5a !important; gap: 6px; }
+html.vky-site .vky-dislike,
+html.vky-site .vky-comment-dislike {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: #272727;
+  color: #f1f1f1;
+  cursor: pointer;
+  font-family: Roboto, Arial, sans-serif;
+}
+html.vky-site .vky-dislike { width: 48px; min-height: 40px; margin-left: -8px; border-radius: 0 20px 20px 0; }
+html.vky-site .vky-comment-dislike { width: 32px; height: 32px; border-radius: 50%; background: transparent; }
+html.vky-site .vky-dislike:hover,
+html.vky-site .vky-comment-dislike:hover { background: #3f3f3f; }
+html.vky-site .vky-dislike[aria-pressed="true"],
+html.vky-site .vky-comment-dislike[aria-pressed="true"] { color: #3ea6ff; }
+
+/* The separate live site uses a video grid in place of its showcase carousel. */
+html.vky-site body.live [class*="CatalogShowcase_container"] { display: none !important; }
+html.vky-site body.live [class*="Main_root"] > [class*="SlidingControls_root"]:has(.vky-live-other),
+html.vky-site body.live [class*="Main_root"] > [class*="SlidingControls_root"]:not(:has([class*="CatalogVideoLayout_root"])),
+html.vky-site body.live [class*="Main_root"] > [class*="CategorySelector_root"] { display: none !important; }
+html.vky-site body.live #vky-live-heading { margin: 20px 20px 28px; color: #f1f1f1; font: 700 24px Roboto, Arial, sans-serif; }
+html.vky-site body.live [class*="CatalogVideoLayout_root"].vky-live-other { display: none !important; }
+html.vky-site body.live [class*="CatalogVideoLayout_root"].vky-live-primary { margin: 0 20px 36px !important; }
+html.vky-site body.live .vky-live-primary [class*="CatalogVideoLayout_title"] { color: #f1f1f1 !important; font: 700 20px Roboto, Arial, sans-serif !important; }
+html.vky-site body.live .vky-live-primary [class*="CatalogVideoLayout_list"] {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+  gap: 28px 16px !important;
+  overflow: visible !important;
+  transform: none !important;
+}
+html.vky-site body.live .vky-live-primary a[class*="CatalogStream_container"] { width: auto !important; max-width: none !important; border-radius: 0 !important; background: transparent !important; }
+html.vky-site body.live .vky-live-primary a[class*="CatalogStream_container"] img { border-radius: 12px !important; }
+html.vky-site body.live .vky-live-primary button[class*="Slider"] { display: none !important; }
+@media (max-width: 800px) {
+  html.vky-site #vky-guide { width: 72px; padding: 4px; }
+  html.vky-site #vky-guide .vky-guide-section:not(:first-child) { display: none; }
+  html.vky-site #vky-guide .vky-guide-link { flex-direction: column; gap: 6px; justify-content: center; min-height: 72px; padding: 0 2px; font-size: 10px; }
+}

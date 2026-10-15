@@ -32,8 +32,8 @@ html.vky-studio [data-testid="video_spa_header"] {
   color: var(--vky-text);
 }
 html.vky-studio [data-testid="video_spa_header"] > div:first-child { min-width: 240px !important; }
-html.vky-studio [data-testid="video_spa_header"] a[aria-label="На главную VK Видео"] > svg { display: none !important; }
-html.vky-studio [data-testid="video_spa_header"] a[aria-label="На главную VK Видео"] {
+html.vky-studio [data-vky-logo="1"] > svg { display: none !important; }
+html.vky-studio [data-vky-logo="1"] {
   min-width: 175px;
   text-decoration: none !important;
 }
@@ -170,3 +170,6 @@ html.vky-studio .vkuiSeparator__in { background: var(--vky-line) !important; }
 html.vky-studio a:not([data-testid^="dashboard_aside_"]):hover,
 html.vky-studio button:hover { filter: brightness(1.12); }
 /* Forms, analytics charts, upload and publication actions remain native VK controls. */
+html.vky-studio a[data-testid^="dashboard_aside_"]:has(.vky-studio-icon) .vkuiSimpleCell__before { display: none !important; }
+html.vky-studio .vky-studio-icon { display: inline-grid; place-items: center; width: 24px; height: 24px; flex: none; margin-right: 20px; color: #aaa; }
+html.vky-studio a[data-testid^="dashboard_aside_"].vkuiTappable__activatedBackground .vky-studio-icon { color: #ff4e65; }

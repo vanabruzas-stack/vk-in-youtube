@@ -1,2 +1,3 @@
 import { installSkin } from './shared';
-installSkin('site');
+import { enhanceSite, restoreSite } from './site-enhance';
+installSkin('site', enhanceSite, restoreSite);

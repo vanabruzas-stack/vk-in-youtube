@@ -59,11 +59,11 @@ for (const size of [16, 32, 48, 128]) await writeFile(resolve(out, `icon${size}.
 
 const manifest = {
   manifest_version: 3,
-  name: 'VK Видео в стиле YouTube',
+  name: 'YouTube',
   description: 'Оформление VK Видео и кабинета автора в стиле YouTube и YouTube Studio. Данные и действия остаются VK Видео.',
   version: pkg.version,
   icons: { 16: 'icon16.png', 32: 'icon32.png', 48: 'icon48.png', 128: 'icon128.png' },
-  action: { default_popup: 'popup.html', default_title: 'VK Видео в стиле YouTube' },
+  action: { default_popup: 'popup.html', default_title: 'YouTube' },
   permissions: ['storage'],
   content_scripts: [
     { matches: ['https://vkvideo.ru/*', 'https://www.vkvideo.ru/*', 'https://live.vkvideo.ru/*'], js: ['site.js'], css: ['site.css'], run_at: 'document_start' },

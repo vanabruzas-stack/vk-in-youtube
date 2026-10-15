@@ -9,9 +9,9 @@ namespace VkYouTubeSetup;
 internal static class SetupBrand
 {
 #if REVERSE_EXTENSION
-    internal const string Title = "VK Видео в стиле YouTube";
+    internal const string Title = "YouTube";
     internal const string DestinationFolder = "VK Video in YouTube Style";
-    internal const string RefreshTabs = "VK Видео и кабинета автора";
+    internal const string RefreshTabs = "YouTube и YouTube Studio";
     internal const string FontName = "Arial";
     internal static readonly Color Accent = Color.FromArgb(255, 0, 51);
 #else

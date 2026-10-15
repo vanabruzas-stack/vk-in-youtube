@@ -1,2 +1,3 @@
 import { installSkin } from './shared';
-installSkin('studio');
+import { enhanceStudio, restoreStudio } from './studio-enhance';
+installSkin('studio', enhanceStudio, restoreStudio);
