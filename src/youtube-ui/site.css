@@ -52,6 +52,9 @@ html:has(.ytp-fullscreen) #vkvk-site-shell{display:none}
 .vkvk-search input{flex:1;min-width:0;height:100%;border:0;outline:0;background:none;color:var(--vk-text);font:400 14px VKLocal,Roboto,Arial,sans-serif}
 .vkvk-search input::placeholder{color:var(--vk-muted)}
 .vkvk-search input::-webkit-search-cancel-button{filter:invert(.6)}
+.vkvk-search-submit{width:24px;height:24px;flex:none;display:grid;place-items:center;padding:0;border:0;background:transparent;color:var(--vk-muted);cursor:pointer}
+.vkvk-search-submit:hover,.vkvk-search-submit:focus-visible{color:var(--vk-text)}
+.vkvk-search-submit svg{width:20px;height:20px;display:block}
 .vkvk-actions{margin-left:auto;display:flex;align-items:center;gap:6px}
 .vkvk-creators{color:var(--vk-secondary)!important;font-size:13px;padding:0 6px}
 .vkvk-creators:hover{color:var(--vk-text)!important}

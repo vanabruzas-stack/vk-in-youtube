@@ -48,6 +48,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     assert.equal(await page.locator('.vkvk-nav[data-route="studio"]').getAttribute('href'), 'https://studio.youtube.com/');
     assert.ok(await page.locator('.vkvk-nav[data-route="home"] svg path').count(), 'VK icon is rendered');
     assert.equal(await page.locator('.vkvk-search input').getAttribute('placeholder'), 'Поиск видео');
+    assert.equal(await page.locator('.vkvk-search-submit').getAttribute('aria-label'), 'Найти видео');
     await page.locator('ytd-rich-grid-media').waitFor();
     await page.waitForFunction(() => document.querySelector('ytd-rich-shelf-renderer #title')?.textContent === 'Клипы');
     assert.equal(await page.locator('ytd-rich-grid-media a[href*="/watch"]').first().getAttribute('href'), '/watch?v=12345678901');

@@ -322,8 +322,12 @@ function buildHeader(): HTMLElement {
   input.placeholder = 'Поиск видео';
   input.setAttribute('aria-label', 'Поиск видео');
   input.value = new URLSearchParams(location.search).get('search_query') || '';
-  form.innerHTML = vkIcons.search;
-  form.append(input);
+  const submit = element('button', 'vkvk-search-submit');
+  submit.type = 'submit';
+  submit.setAttribute('aria-label', 'Найти видео');
+  submit.title = 'Найти видео';
+  submit.innerHTML = vkIcons.search;
+  form.append(submit, input);
   form.addEventListener('submit', event => { event.preventDefault(); search(input.value); });
 
   const actions = element('div', 'vkvk-actions');
@@ -1817,7 +1821,9 @@ function updateActive(): void {
   shell.querySelectorAll<HTMLElement>('.vkvk-nav[data-route]').forEach(item => item.classList.toggle('active', item.dataset.route === active));
   const input = shell.querySelector<HTMLInputElement>('.vkvk-search input');
   if (input && document.activeElement !== input) {
-    if (route === 'search') input.value = new URLSearchParams(location.search).get('search_query') || '';
+    const query = new URLSearchParams(location.search).get('search_query');
+    if (route === 'search') input.value = query || '';
+    else if (route !== 'watch' && route !== 'history') input.value = '';
     const hint = route === 'history' ? 'Поиск в истории просмотра' : 'Поиск видео';
     input.placeholder = hint;
     input.setAttribute('aria-label', hint);

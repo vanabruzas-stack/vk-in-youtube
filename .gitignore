@@ -1,14 +1,11 @@
 node_modules/
 references/vkvideo/
 dist/
-reverse-extension/dist/
 work/
 outputs/*.exe
 outputs/*.zip
 installer/bin/
 installer/obj/
-reverse-extension/installer/bin/
-reverse-extension/installer/obj/
 *.log
 .DS_Store
 .cursor/
