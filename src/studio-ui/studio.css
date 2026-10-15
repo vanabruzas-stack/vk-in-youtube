@@ -25,7 +25,7 @@ html.vkvk-hide-vidiq :is([id*='vidiq' i],[class*='vidiq' i],[data-testid*='vidiq
 .vkvk-top-icon{width:36px;height:36px;display:grid!important;place-items:center;border-radius:8px!important;color:var(--vkvk-secondary)!important}
 .vkvk-top-icon:hover,.vkvk-top-profile:hover{background:var(--vkvk-hover)!important;color:var(--vkvk-text)!important}
 .vkvk-logo{display:flex!important;align-items:center;gap:8px;margin-left:10px!important;height:36px}
-.vkvk-logo svg,.vkvk-fox{width:28px;height:28px;border-radius:8px;object-fit:cover}
+.vkvk-logo svg{width:28px;height:28px}
 .vkvk-logo strong{font-size:17px;line-height:22px;font-weight:600;color:#fff}
 .vkvk-top-actions{margin-left:auto;display:flex;align-items:center;gap:6px}
 .vkvk-creators-link{color:var(--vkvk-secondary)!important;font-size:13px;padding:0 6px}

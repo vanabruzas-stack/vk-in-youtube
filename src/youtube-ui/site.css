@@ -42,7 +42,7 @@ html:has(.ytp-fullscreen) #vkvk-site-shell{display:none}
 .vkvk-icon-button{width:36px;height:36px;display:grid;place-items:center;border-radius:8px;color:var(--vk-secondary)!important;transition:background .15s}
 .vkvk-icon-button:hover{background:var(--vk-hover)!important;color:var(--vk-text)!important}
 .vkvk-brand{display:flex;align-items:center;gap:8px;margin-left:10px;width:200px;height:36px}
-.vkvk-fox{width:28px;height:28px;border-radius:8px;object-fit:cover;flex:none}
+.vkvk-brand svg{width:28px;height:28px;flex:none}
 .vkvk-brand strong{font-size:17px;line-height:22px;font-weight:600;color:#fff;letter-spacing:-.1px}
 .vkvk-search{position:absolute;left:50%;transform:translateX(-50%);width:min(560px,calc(100vw - 680px));min-width:280px;height:36px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:8px;background:var(--vk-raised);color:var(--vk-muted)}
 .vkvk-search:focus-within{background:#353637;box-shadow:inset 0 0 0 1px #4b4c4d}
@@ -231,15 +231,22 @@ html.vkvk-site :is(ytd-rich-item-renderer,yt-lockup-view-model) :is(yt-icon-butt
 html.vkvk-site :is(ytd-search,ytd-browse:not([page-subtype='home'])) #primary,html.vkvk-site ytd-search #container{padding-top:12px!important}
 html.vkvk-site :is(ytd-search,ytd-browse[page-subtype='history']) :is(ytd-video-renderer,yt-lockup-view-model){padding:8px!important;border-radius:12px!important}
 html.vkvk-site :is(ytd-search,ytd-browse[page-subtype='history']) :is(ytd-video-renderer,yt-lockup-view-model):hover{background:var(--vk-panel)!important}
-html.vkvk-site ytd-search ytd-search-header-renderer{background:var(--vk-bg)!important}
-html.vkvk-site :is(ytd-search-filter-group-renderer,ytd-search-header-renderer) :is(button,yt-chip-cloud-chip-renderer){border-radius:8px!important}
+html.vkvk-site ytd-search ytd-search-header-renderer{margin:8px 16px 0 12px!important;padding:8px 12px!important;border-radius:16px!important;background:var(--vk-panel)!important}
+html.vkvk-site :is(ytd-search-filter-group-renderer,ytd-search-header-renderer) :is(button,yt-chip-cloud-chip-renderer){height:32px!important;margin:0 6px 6px 0!important;padding:0 12px!important;border-radius:8px!important;background:#2c2d2e!important;color:var(--vk-text)!important}
+html.vkvk-site ytd-browse[page-subtype='history'] ytd-item-section-renderer #contents{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:18px 12px!important}
+html.vkvk-site ytd-browse[page-subtype='history'] ytd-item-section-header-renderer{margin:8px 0 4px!important}
+html.vkvk-site ytd-browse[page-subtype='history'] ytd-video-renderer{width:auto!important}
+html.vkvk-site ytd-browse[page-subtype='history'] ytd-video-renderer #dismissible{display:flex!important;flex-direction:column!important;gap:8px!important}
+html.vkvk-site ytd-browse[page-subtype='history'] ytd-video-renderer :is(#meta,#details,#channel-info){width:100%!important;min-width:0!important}
+@media(max-width:1280px){html.vkvk-site ytd-browse[page-subtype='history'] ytd-item-section-renderer #contents{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:900px){html.vkvk-site ytd-browse[page-subtype='history'] ytd-item-section-renderer #contents{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 html.vkvk-site :is(ytd-playlist-header-renderer,yt-page-header-renderer,.page-header-view-model-wiz){border-radius:16px!important;background:var(--vk-panel)!important}
 html.vkvk-site ytd-browse[page-subtype='playlist'] :is(ytd-playlist-video-renderer,yt-lockup-view-model){
   padding:8px!important;border-radius:12px!important
 }
 html.vkvk-site ytd-browse[page-subtype='playlist'] :is(ytd-playlist-video-renderer,yt-lockup-view-model):hover{background:var(--vk-panel)!important}
 html.vkvk-site ytd-browse[page-subtype='playlist'] :is(ytd-thumbnail,#thumbnail){
-  width:246px!important;min-width:246px!important;max-width:246px!important;aspect-ratio:16/9!important;flex:none!important
+  width:112px!important;min-width:112px!important;max-width:112px!important;aspect-ratio:16/9!important;flex:none!important
 }
 html.vkvk-site :is(ytd-item-section-renderer #header,ytd-shelf-renderer #title-container) #title{font-size:20px!important;font-weight:600!important}
 
@@ -389,6 +396,7 @@ html.vkvk-site ytd-watch-metadata :is(#actions, #top-level-buttons-computed, ytd
 html.vkvk-site ytd-watch-metadata :is(#actions button, ytd-menu-renderer button){height:36px!important;border-radius:8px!important;background:rgba(255,255,255,.08)!important}
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model{position:relative!important;display:inline-flex!important;width:auto!important;min-width:92px!important;height:36px!important;overflow:hidden!important;vertical-align:middle!important;border-radius:8px!important}
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model button :is(svg,yt-icon,.yt-spec-button-shape-next__icon){opacity:0!important}
+html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model button::before{content:''!important;background:#fff!important}
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model::after{content:var(--vkvk-likes);position:absolute;inset:0;z-index:2;box-sizing:border-box;padding:0 10px 0 26px;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;font:500 13px/36px VKLocal,Roboto,Arial,sans-serif;pointer-events:none;white-space:nowrap}
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model::before{content:"";position:absolute;z-index:3;left:8px;top:10px;width:16px;height:16px;background:#fff;pointer-events:none;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.992 4.006c-1.452.064-2.753.637-3.881 1.694l-.117.113-.122-.118C10.662 4.576 9.275 4 7.734 4 4.577 4 2 6.56 2 9.717c0 3.088 1.127 4.552 6.182 8.546l2.688 2.098a1.84 1.84 0 0 0 2.26 0l2.364-1.843.933-.74C20.965 14.144 22 12.676 22 9.718 22 6.56 19.423 4 16.266 4zm.274 1.794c2.165 0 3.934 1.757 3.934 3.917l-.005.294c-.076 2.156-1.062 3.341-5.509 6.852l-2.663 2.078a.04.04 0 0 1-.046 0l-2.364-1.843-.874-.691c-4.142-3.31-4.939-4.44-4.939-6.69C3.8 7.557 5.569 5.8 7.734 5.8c1.333 0 2.507.618 3.57 1.915a.9.9 0 0 0 1.398-.007C13.739 6.416 14.909 5.8 16.266 5.8'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.992 4.006c-1.452.064-2.753.637-3.881 1.694l-.117.113-.122-.118C10.662 4.576 9.275 4 7.734 4 4.577 4 2 6.56 2 9.717c0 3.088 1.127 4.552 6.182 8.546l2.688 2.098a1.84 1.84 0 0 0 2.26 0l2.364-1.843.933-.74C20.965 14.144 22 12.676 22 9.718 22 6.56 19.423 4 16.266 4zm.274 1.794c2.165 0 3.934 1.757 3.934 3.917l-.005.294c-.076 2.156-1.062 3.341-5.509 6.852l-2.663 2.078a.04.04 0 0 1-.046 0l-2.364-1.843-.874-.691c-4.142-3.31-4.939-4.44-4.939-6.69C3.8 7.557 5.569 5.8 7.734 5.8c1.333 0 2.507.618 3.57 1.915a.9.9 0 0 0 1.398-.007C13.739 6.416 14.909 5.8 16.266 5.8'/%3E%3C/svg%3E") center/contain no-repeat}
 html.vkvk-site ytd-watch-metadata like-button-view-model button{
@@ -419,7 +427,8 @@ html.vkvk-site ytd-watch-metadata like-button-view-model button :is(.yt-spec-but
 html.vkvk-site :is(.yt-spec-button-shape-next,yt-button-shape button,ytd-subscribe-button-renderer button){border-radius:8px!important;font-weight:500!important}
 html.vkvk-site .yt-spec-button-shape-next--filled.yt-spec-button-shape-next--mono{background:#e1e3e6!important;color:#19191a!important}
 html.vkvk-site .yt-spec-button-shape-next--filled.yt-spec-button-shape-next--mono *{color:#19191a!important;fill:#19191a!important}
-html.vkvk-site :is(ytd-search,ytd-browse[page-subtype='history']) ytd-video-renderer :is(ytd-thumbnail,#thumbnail){width:360px!important;min-width:360px!important;max-width:360px!important;flex:none!important}
+html.vkvk-site ytd-search ytd-video-renderer :is(ytd-thumbnail,#thumbnail){width:360px!important;min-width:360px!important;max-width:360px!important;flex:none!important}
+html.vkvk-site ytd-browse[page-subtype='history'] ytd-video-renderer :is(ytd-thumbnail,#thumbnail){width:100%!important;min-width:0!important;max-width:none!important;aspect-ratio:16/9!important}
 html.vkvk-site ytd-search ytd-video-renderer #dismissible{gap:16px}
 html.vkvk-site :is(ytd-watch-metadata #description,ytd-text-inline-expander){
   background:var(--vk-panel)!important;
@@ -923,7 +932,7 @@ html.vkvk-site[data-vkvk-route='watch'] ytd-watch-metadata #description.vkvk-des
   max-height:none!important;
   overflow:visible!important
 }
-html.vkvk-site .vkvk-desc-collapse{display:none;margin-top:8px;padding:0;border:0;background:none;color:#71aaeb;font:500 13px/18px VKLocal,Roboto,Arial,sans-serif;cursor:pointer}
+html.vkvk-site .vkvk-desc-collapse{display:none;margin:0 0 8px;padding:0;border:0;background:none;color:#71aaeb;font:500 13px/18px VKLocal,Roboto,Arial,sans-serif;cursor:pointer}
 html.vkvk-site #description.vkvk-desc-open .vkvk-desc-collapse{display:inline-flex}
 html.vkvk-site[data-vkvk-route='watch'] ytd-text-inline-expander{
   pointer-events:auto!important

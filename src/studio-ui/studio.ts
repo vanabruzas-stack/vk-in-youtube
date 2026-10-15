@@ -102,10 +102,7 @@ function renderShell(): void {
   burger.setAttribute('aria-label', 'Меню');
   burger.addEventListener('click', () => document.documentElement.classList.toggle('vkvk-studio-collapsed'));
   const logo = node('button', 'vkvk-logo');
-  const fox = node('img', 'vkvk-fox');
-  fox.alt = '';
-  fox.src = chrome.runtime?.getURL?.('fox-logo.jpg') || 'fox-logo.jpg';
-  logo.append(fox, node('strong', '', 'Кабинет автора'));
+  logo.innerHTML = `${vkMarkSvg}<strong>Кабинет автора</strong>`;
   logo.addEventListener('click', () => nativeNavigate('overview'));
   top.append(burger, logo);
   const actions = node('div', 'vkvk-top-actions');
