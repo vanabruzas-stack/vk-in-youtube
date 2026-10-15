@@ -9,7 +9,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await page.route('https://www.youtube.com/**', route => route.fulfill({
       contentType: 'text/html; charset=utf-8',
-      body: `<!doctype html><html><body><ytd-app><ytd-masthead><div id="avatar-btn"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAACAgP///ywAAAAAAQABAAACAUwAOw=="></div></ytd-masthead><ytd-page-manager>
+      body: `<!doctype html><html><body><ytd-app><ytd-masthead><div id="avatar-btn"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAACAgP///ywAAAAAAQABAAACAUwAOw=="></div></ytd-masthead><ytd-guide-renderer><ytd-guide-entry-renderer><a id="endpoint" href="/@SergeyOrlov" title="Сергей Орлов"></a></ytd-guide-entry-renderer></ytd-guide-renderer><ytd-page-manager>
         <ytd-browse page-subtype="home"><ytd-rich-grid-renderer><div id="contents"><ytd-rich-grid-media>
           <a href="/watch?v=12345678901"><img class="ytCoreImageHost" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="></a>
           <a id="video-title" title="Настоящее видео">Настоящее видео</a>
@@ -35,6 +35,9 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     await page.addStyleTag({ path: resolve('dist/site.css') });
     await page.addScriptTag({ path: resolve('dist/site.js') });
     await page.locator('#vkvk-site-shell').waitFor();
+    await page.waitForFunction(() => document.querySelector('.vkvk-subscription')?.getAttribute('href') === '/@SergeyOrlov');
+    assert.equal(await page.locator('.vkvk-subscription span').innerText(), 'Сергей Орлов');
+    assert.equal(await page.locator('.vkvk-sub-fallback').innerText(), 'С');
     assert.equal(await page.locator('.vkvk-nav[data-route="home"]').getAttribute('href'), '/');
     assert.equal(await page.locator('.vkvk-nav[data-route="live"]').getAttribute('href'), '/channel/UC4R8DWoMoI7CAwX8_LjQHig');
     assert.match(await page.locator('.vkvk-nav[data-route="live"]').innerHTML(), /10\.52 9\.823/);
@@ -136,7 +139,11 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
           <div id="owner"><a href="/@РЫЖАЯМОРДА">РЫЖАЯ МОРДА</a></div>
           <div id="owner-sub-count">4,12 тыс. подписчиков</div>
           <div id="view-count">62 просмотров</div>
-          <div id="description"><button id="expand">ещё</button></div>
+          <div id="description"><ytd-text-inline-expander>
+            <yt-attributed-string id="view-line">501 037 просмотров 23 авг. 2026 г.</yt-attributed-string>
+            <yt-attributed-string id="body-text">Сергей Орлов приглашает гостей для коллективной доработки своих черновиков и неиспользованных шуток.</yt-attributed-string>
+            <button id="expand">ещё</button>
+          </ytd-text-inline-expander></div>
           <like-button-view-model><button><span class="yt-spec-button-shape-next__button-text-content">0</span></button></like-button-view-model>
           <dislike-button-view-model></dislike-button-view-model>
         </ytd-watch-metadata></ytd-watch-flexy>`);
@@ -163,6 +170,9 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
       const description = document.querySelector('#description');
       return Boolean(line && description && (line.compareDocumentPosition(description) & Node.DOCUMENT_POSITION_FOLLOWING));
     }), 'view count stays above the description');
+    assert.equal(await page.locator('#body-text').evaluate(node => node.classList.contains('vkvk-desc-text')), true);
+    assert.equal(await page.locator('#view-line').evaluate(node => node.classList.contains('vkvk-desc-skip')), true);
+    assert.equal(await page.locator('#body-text').evaluate(node => node.nextElementSibling?.classList.contains('vkvk-desc-toggle')), true);
     assert.match(await page.locator('like-button-view-model .yt-spec-button-shape-next__button-text-content').innerText(), /^\d+ тыс\.$/);
     assert.equal(await page.locator('like-button-view-model button').evaluate(node => getComputedStyle(node, '::before').content), '""');
     assert.match(await page.locator('like-button-view-model button').evaluate(node => getComputedStyle(node, '::before').webkitMaskImage || getComputedStyle(node, '::before').maskImage), /zm\.274|1\.794/);

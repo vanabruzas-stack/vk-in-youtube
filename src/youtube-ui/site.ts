@@ -224,11 +224,18 @@ function renderRussiaFeed(): void {
   else host.prepend(panel);
 }
 function syncFullscreen(): void {
+  const webkit = (document as Document & { webkitFullscreenElement?: Element | null }).webkitFullscreenElement;
   const active = Boolean(
     document.fullscreenElement
-    || document.querySelector('#movie_player.ytp-fullscreen, .html5-video-player.ytp-fullscreen')
+    || webkit
+    || document.querySelector('#movie_player.ytp-fullscreen, .html5-video-player.ytp-fullscreen, .ytp-fullscreen')
   );
   document.documentElement.classList.toggle('vkvk-fullscreen', active);
+  document.querySelectorAll<HTMLElement>('#movie_player, ytd-player, .html5-video-player').forEach(player => {
+    if (player.dataset.vkvkFsWatch === '1') return;
+    player.dataset.vkvkFsWatch = '1';
+    new MutationObserver(() => syncFullscreen()).observe(player, { attributes: true, attributeFilter: ['class'] });
+  });
 }
 function nudgePlayerLayout(): void {
   if (document.documentElement.classList.contains('vkvk-fullscreen') || document.querySelector('.ytp-fullscreen') || document.fullscreenElement) return;
@@ -433,28 +440,99 @@ function syncAccount(): void {
   });
 }
 
+type SubscriptionItem = { href: string; title: string; image: string; live: boolean };
+let cachedSubscriptions: SubscriptionItem[] | null = null;
+let subscriptionFetchStarted = false;
+
+function rememberSubscription(items: SubscriptionItem[], href: string, title: string, image = '', live = false): void {
+  const cleanHref = href.split('?')[0];
+  const cleanTitle = title.replace(/\\u0026/g, '&').replace(/\s+/g, ' ').trim();
+  if (!/^\/(@|channel\/UC)/.test(cleanHref) || !cleanTitle || items.some(item => item.href === cleanHref)) return;
+  items.push({ href: cleanHref, title: cleanTitle, image: image.replace(/\\u0026/g, '&'), live });
+}
+
+function guideSubscriptions(): SubscriptionItem[] {
+  const items: SubscriptionItem[] = [];
+  const visit = (root: ParentNode) => {
+    root.querySelectorAll<HTMLAnchorElement>('a[href]').forEach(link => {
+      const href = link.getAttribute('href') || '';
+      if (!/^\/(@|channel\/UC)/.test(href)) return;
+      const host = link.closest('ytd-guide-entry-renderer, ytd-guide-collapsible-entry-renderer, ytd-guide-section-renderer, yt-guide-entry-view-model, ytd-mini-guide-entry-renderer');
+      if (!host) return;
+      const title = link.getAttribute('title')
+        || link.getAttribute('aria-label')
+        || link.querySelector('#guide-entry-title, yt-formatted-string, .title')?.textContent
+        || link.textContent
+        || '';
+      const image = link.querySelector<HTMLImageElement>('img')?.src
+        || host.querySelector<HTMLImageElement>('img')?.src
+        || '';
+      const live = Boolean(host.querySelector('[class*="live"], #newness-dot:not([hidden])'));
+      rememberSubscription(items, href, title, image, live);
+    });
+    root.querySelectorAll('*').forEach(node => { if (node.shadowRoot) visit(node.shadowRoot); });
+  };
+  const hosts = document.querySelectorAll('ytd-app, tp-yt-app-drawer, ytd-guide-renderer, #guide, ytd-mini-guide-renderer');
+  if (hosts.length) hosts.forEach(node => { visit(node); if (node.shadowRoot) visit(node.shadowRoot); });
+  else visit(document.body);
+  return items.slice(0, 40);
+}
+
+function subscriptionsFromText(text: string): SubscriptionItem[] {
+  const items: SubscriptionItem[] = [];
+  if (!text.includes('guideEntryRenderer') && !text.includes('channelRenderer') && !text.includes('gridChannelRenderer')) return items;
+  for (const part of text.split(/"(?:guideEntryRenderer|gridChannelRenderer|channelRenderer)":/).slice(1, 80)) {
+    const slice = part.slice(0, 2200);
+    const href = slice.match(/"canonicalBaseUrl":"(\/(?:@|channel\/UC)[^"]+)"/)?.[1] || '';
+    const title = slice.match(/"simpleText":"([^"]+)"/)?.[1] || slice.match(/"text":"([^"]+)"/)?.[1] || '';
+    const image = slice.match(/"url":"(https:[^"]+)"/)?.[1] || '';
+    rememberSubscription(items, href, title, image, /"isLive":true/.test(slice));
+  }
+  return items;
+}
+
+function loadRemoteSubscriptions(): void {
+  if (subscriptionFetchStarted) return;
+  subscriptionFetchStarted = true;
+  void fetch('/feed/channels', { credentials: 'include' })
+    .then(response => response.ok ? response.text() : '')
+    .then(text => {
+      const items = subscriptionsFromText(text);
+      if (!items.length) return;
+      cachedSubscriptions = items;
+      lastSubscriptions = '';
+      syncSubscriptions();
+    })
+    .catch(() => undefined);
+}
+
 function syncSubscriptions(): void {
   const host = shell?.querySelector<HTMLElement>('.vkvk-subscriptions');
   if (!host) return;
-  const entries = [...document.querySelectorAll<HTMLAnchorElement>('ytd-guide-entry-renderer a#endpoint')]
-    .filter(link => /^\/(@|channel\/UC)/.test(link.getAttribute('href') || ''))
-    .map(link => ({
-      href: link.getAttribute('href') || '',
-      title: link.getAttribute('title') || link.textContent?.trim() || '',
-      image: link.querySelector<HTMLImageElement>('img')?.src || '',
-      live: Boolean(link.closest('ytd-guide-entry-renderer')?.querySelector('[class*="live"],#newness-dot:not([hidden])')),
-    }))
-    .filter(item => item.image && item.title);
+  const fromDom = guideSubscriptions();
+  if (!fromDom.length && !cachedSubscriptions) {
+    cachedSubscriptions = [];
+    for (const script of document.scripts) {
+      const found = subscriptionsFromText(script.textContent || '');
+      if (found.length) { cachedSubscriptions = found; break; }
+    }
+    if (!cachedSubscriptions.length) loadRemoteSubscriptions();
+  }
+  const entries = fromDom.length ? fromDom : cachedSubscriptions || [];
   const key = entries.map(item => item.href + item.image + item.live).join('|');
   if (key === lastSubscriptions) return;
   lastSubscriptions = key;
   host.replaceChildren(...entries.map(item => {
     const link = element('a', 'vkvk-nav vkvk-subscription');
     link.href = item.href;
-    const image = element('img');
-    image.src = item.image;
-    image.alt = '';
-    link.append(image, element('span', '', item.title));
+    link.title = item.title;
+    if (item.image) {
+      const image = element('img');
+      image.src = item.image;
+      image.alt = '';
+      link.append(image);
+    } else link.append(element('b', 'vkvk-sub-fallback', item.title.slice(0, 1).toUpperCase()));
+    link.append(element('span', '', item.title));
     if (item.live) link.append(element('i', 'vkvk-dot'));
     return link;
   }));
@@ -637,8 +715,6 @@ function watchMetricPiece(text: string): { kind: 'view' | 'date'; value: string 
   if (calendar) return { kind: 'date', value: calendar[1].replace(/\s+/g, ' ').trim() };
   return null;
 }
-const gluedWatchMetrics = /^(\d[\d\s\u00a0.,]*\s*(?:тыс\.?|млн|млрд)?\s*просмотр(?:ов|а|ы)?)(?:\s*[·•]\s*|\s+)(\d{1,2}\s+[а-яё.]{2,16}\s+\d{4}\s*г?\.?|\d+\s+\S+\s+назад)?/i;
-
 function stabilizeWatchViews(): void {
   if (contentRoute(location.pathname) !== 'watch') {
     document.querySelector('.vkvk-watch-views')?.remove();
@@ -647,7 +723,7 @@ function stabilizeWatchViews(): void {
   const metadata = document.querySelector('ytd-watch-metadata');
   const description = metadata?.querySelector<HTMLElement>('#description, ytd-text-inline-expander, ytd-expandable-video-description-body-renderer');
   if (!metadata || !description) return;
-  const box = description.closest('ytd-text-inline-expander') || description;
+  const box = description.closest('#description') || description.closest('ytd-text-inline-expander') || description;
   let line = metadata.querySelector<HTMLElement>('.vkvk-watch-views');
   if (!line) line = element('div', 'vkvk-watch-views');
   if (line.parentElement !== box.parentElement || line.nextElementSibling !== box) box.before(line);
@@ -677,22 +753,6 @@ function stabilizeWatchViews(): void {
     pieces.forEach(piece => pushPiece(piece.kind, piece.value, pieces.length === 1 ? raw : piece.value));
     if (!node.closest('ytd-watch-info-text')) node.classList.add('vkvk-live-views-source');
   });
-  const walker = document.createTreeWalker(description, NodeFilter.SHOW_TEXT);
-  let textNode: Node | null;
-  while ((textNode = walker.nextNode())) {
-    const parent = textNode.parentElement;
-    if (!parent || parent.closest('.vkvk-watch-views, button, .vkvk-desc-toggle')) continue;
-    const raw = (textNode.textContent || '').replace(/\u00a0/g, ' ');
-    const match = raw.match(gluedWatchMetrics);
-    if (!match) continue;
-    const view = watchMetricPiece(match[1].trim());
-    const date = match[2] ? watchMetricPiece(match[2].trim()) : null;
-    if (view?.kind === 'view') pushPiece('view', view.value, match[1].trim());
-    if (date?.kind === 'date') pushPiece('date', date.value);
-    const rest = raw.slice(match[0].length).replace(/^\s+/, '');
-    if (textNode.textContent !== rest) textNode.textContent = rest;
-    break;
-  }
   const shown = bits.join(' · ');
   if (shown && line.textContent !== shown) line.textContent = shown;
 }
@@ -854,31 +914,63 @@ function decorateOwnerMode(): void {
   }
 }
 
+function viewOnlyText(value: string): boolean {
+  const clean = value.replace(/\s+/g, ' ').trim();
+  return Boolean(clean) && clean.length <= 140 && /^[\d\s\u00a0.,]+(?:тыс\.?|млн|млрд)?\s*просмотр/i.test(clean);
+}
+function clearDescBox(node: HTMLElement): void {
+  node.classList.remove('vkvk-desc-text', 'vkvk-desc-skip');
+  for (const property of ['display', 'width', 'margin', 'background', 'border', 'border-radius', 'padding', 'box-sizing']) node.style.removeProperty(property);
+}
 function decorateDescriptions(): void {
-  document.querySelectorAll<HTMLElement>('ytd-watch-metadata #description, ytd-watch-metadata ytd-text-inline-expander, ytd-watch-metadata ytd-expandable-video-description-body-renderer').forEach(description => {
-    const text = deepQuery<HTMLElement>(description, 'yt-attributed-string, .yt-core-attributed-string, #plain-snippet-text, #attributed-snippet-text, #description-text')
-      || [...description.children].find((node): node is HTMLElement => node instanceof HTMLElement && !node.matches('button, .vkvk-desc-toggle, ytd-structured-description-content-renderer, ytd-video-description-infocards-section-renderer'));
-    if (text) {
-      text.classList.add('vkvk-desc-text');
-      text.style.setProperty('background', '#2c2d2e', 'important');
-      text.style.setProperty('border', '1px solid #6d7074', 'important');
-      text.style.setProperty('border-radius', '12px', 'important');
-      text.style.setProperty('padding', '12px 14px', 'important');
-      text.style.setProperty('box-sizing', 'border-box', 'important');
-    }
-    if (!description.querySelector('.vkvk-desc-toggle')) {
-      const toggle = element('button', 'vkvk-desc-toggle', 'Показать полностью');
-      toggle.type = 'button';
-      toggle.addEventListener('click', event => {
-        event.preventDefault();
-        event.stopPropagation();
-        const open = description.classList.toggle('vkvk-desc-open');
-        toggle.textContent = open ? 'Свернуть' : 'Показать полностью';
-      });
-      if (text) text.after(toggle);
-      else description.append(toggle);
-    }
+  const metadata = document.querySelector('ytd-watch-metadata');
+  const root = metadata?.querySelector<HTMLElement>('ytd-text-inline-expander, ytd-expandable-video-description-body-renderer, #description');
+  if (!metadata || !root) return;
+  const nodes: HTMLElement[] = [];
+  deepEach(root, node => {
+    if (!(node instanceof HTMLElement)) return;
+    if (!node.matches('yt-attributed-string, .yt-core-attributed-string, #plain-snippet-text, #attributed-snippet-text, #description-text')) return;
+    if (node.closest('.vkvk-watch-views, .vkvk-desc-toggle, button')) return;
+    nodes.push(node);
   });
+  const scored = nodes.map(node => ({ node, text: (node.innerText || node.textContent || '').replace(/\s+/g, ' ').trim() })).filter(item => item.text);
+  const body = [...scored].filter(item => !viewOnlyText(item.text)).sort((a, b) => b.text.length - a.text.length)[0]?.node
+    || [...scored].sort((a, b) => b.text.length - a.text.length)[0]?.node
+    || null;
+  metadata.querySelectorAll<HTMLElement>('.vkvk-desc-text, .vkvk-desc-skip').forEach(node => { if (node !== body) clearDescBox(node); });
+  const viewsShown = /просмотр|views/i.test(metadata.querySelector('.vkvk-watch-views')?.textContent || '');
+  scored.forEach(item => {
+    if (item.node !== body && viewsShown && viewOnlyText(item.text)) item.node.classList.add('vkvk-desc-skip');
+  });
+  if (!body) return;
+  let parent: HTMLElement | null = body;
+  while (parent && parent !== metadata) {
+    if (parent.hasAttribute('hidden')) parent.removeAttribute('hidden');
+    parent = parent.parentElement;
+  }
+  body.classList.add('vkvk-desc-text');
+  body.classList.remove('vkvk-desc-skip');
+  body.style.setProperty('display', 'block', 'important');
+  body.style.setProperty('width', '100%', 'important');
+  body.style.setProperty('margin', '0', 'important');
+  body.style.setProperty('background', '#2c2d2e', 'important');
+  body.style.setProperty('border', '1px solid #6d7074', 'important');
+  body.style.setProperty('border-radius', '12px', 'important');
+  body.style.setProperty('padding', '12px 14px', 'important');
+  body.style.setProperty('box-sizing', 'border-box', 'important');
+  let toggle = root.querySelector<HTMLButtonElement>('.vkvk-desc-toggle');
+  root.querySelectorAll<HTMLButtonElement>('.vkvk-desc-toggle').forEach((extra, index) => { if (index > 0) extra.remove(); });
+  if (!toggle) {
+    toggle = element('button', 'vkvk-desc-toggle', 'Показать полностью');
+    toggle.type = 'button';
+    toggle.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      const open = root.classList.toggle('vkvk-desc-open');
+      toggle!.textContent = open ? 'Свернуть' : 'Показать полностью';
+    });
+  }
+  if (body.nextElementSibling !== toggle) body.after(toggle);
 }
 const otherHeaderStyle = `
 :is([class*="headline" i],[class*="page-header-content" i],.ytPageHeaderViewModelHeadline){
