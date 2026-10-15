@@ -1,0 +1,10 @@
+node_modules/
+references/vkvideo/
+dist/
+work/
+outputs/*.exe
+outputs/*.zip
+installer/bin/
+installer/obj/
+*.log
+.DS_Store

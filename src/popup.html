@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="popup.css">
+  <title>VK интерфейс YouTube</title>
+</head>
+<body>
+  <header><span class="brand">▶</span><strong>VK интерфейс YouTube</strong></header>
+  <main>
+    <label class="switch"><span>YouTube</span><input id="siteEnabled" type="checkbox"></label>
+    <label class="switch"><span>Кабинет автора</span><input id="studioEnabled" type="checkbox"></label>
+    <label class="switch"><span>VK-статистика видео</span><input id="statsPanelEnabled" type="checkbox"></label>
+    <label class="switch"><span>Скрывать сторонний vidIQ</span><input id="hideVidiq" type="checkbox"></label>
+    <label class="switch"><span>YouTube в РФ</span><input id="youtubeInRussia" type="checkbox"></label>
+    <label class="period">Период в таблице контента
+      <select id="preset"><option value="7d">Последние 7 дней</option><option value="30d">Последние 30 дней</option><option value="all">За всё время</option></select>
+    </label>
+    <button id="connect">Подключить статистику YouTube</button>
+    <p id="status" role="status"></p>
+    <small>Видео, загрузка и настройки остаются на YouTube. Статистика за период требует разрешения YouTube Analytics.</small>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
