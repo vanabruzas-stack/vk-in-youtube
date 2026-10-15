@@ -633,17 +633,19 @@ function watchMetricPiece(text: string): { kind: 'view' | 'date'; value: string 
   if (view) return { kind: 'view', value: view[1].replace(/\s+/g, ' ').trim() };
   const relative = clean.match(/^(\d+\s+(?:секунд\w*|минут\w*|час\w*|дн\w*|недел\w*|месяц\w*|год\w*|лет)\s+назад|\d+\s+\w+\s+ago)$/i);
   if (relative) return { kind: 'date', value: relative[1].replace(/\s+/g, ' ').trim() };
-  const calendar = clean.match(/^(\d{1,2}\s+(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\s+\d{4}(?:\s*г\.?)?)$/i);
+  const calendar = clean.match(/^(\d{1,2}\s+(?:янв(?:аря)?|фев(?:раля)?|мар(?:та)?|апр(?:еля)?|ма[йя]|июн(?:я)?|июл(?:я)?|авг(?:уста)?|сен(?:тября)?|окт(?:ября)?|ноя(?:бря)?|дек(?:абря)?)\.?\s+\d{4}\s*г?\.?)$/i);
   if (calendar) return { kind: 'date', value: calendar[1].replace(/\s+/g, ' ').trim() };
   return null;
 }
+const gluedWatchMetrics = /^(\d[\d\s\u00a0.,]*\s*(?:тыс\.?|млн|млрд)?\s*просмотр(?:ов|а|ы)?)(?:\s*[·•]\s*|\s+)(\d{1,2}\s+[а-яё.]{2,16}\s+\d{4}\s*г?\.?|\d+\s+\S+\s+назад)?/i;
+
 function stabilizeWatchViews(): void {
   if (contentRoute(location.pathname) !== 'watch') {
     document.querySelector('.vkvk-watch-views')?.remove();
     return;
   }
   const metadata = document.querySelector('ytd-watch-metadata');
-  const description = metadata?.querySelector<HTMLElement>('#description, ytd-text-inline-expander');
+  const description = metadata?.querySelector<HTMLElement>('#description, ytd-text-inline-expander, ytd-expandable-video-description-body-renderer');
   if (!metadata || !description) return;
   const box = description.closest('ytd-text-inline-expander') || description;
   let line = metadata.querySelector<HTMLElement>('.vkvk-watch-views');
@@ -652,9 +654,17 @@ function stabilizeWatchViews(): void {
   const bits: string[] = [];
   let sawView = false;
   let sawDate = false;
+  const pushPiece = (kind: 'view' | 'date', value: string, raw = value) => {
+    if (kind === 'view' && sawView) return;
+    if (kind === 'date' && sawDate) return;
+    const shown = isOwnerWatch() && kind === 'view' ? boostMetricText(raw) : value;
+    if (shown && !bits.includes(shown)) bits.push(shown);
+    if (kind === 'view') sawView = true;
+    else sawDate = true;
+  };
   metadata.querySelectorAll<HTMLElement>('#view-count, .view-count, ytd-watch-info-text, span, yt-formatted-string, yt-attributed-string').forEach(node => {
     if (sawView && sawDate) return;
-    if (node.closest('.vkvk-watch-views, button, .vkvk-desc-toggle, ytd-structured-description-content-renderer, ytd-video-description-infocards-section-renderer')) return;
+    if (node.closest('.vkvk-watch-views, #description, ytd-text-inline-expander, button, .vkvk-desc-toggle, ytd-structured-description-content-renderer, ytd-video-description-infocards-section-renderer')) return;
     const text = node.textContent?.replace(/\s+/g, ' ').trim() || '';
     const split = text.match(/^(.+?)\s*[·•]\s*(.+)$/);
     const pieces = split
@@ -664,16 +674,25 @@ function stabilizeWatchViews(): void {
     const raw = node.dataset.vkvkViewRaw && node.dataset.vkvkViewShown === text ? node.dataset.vkvkViewRaw : text;
     node.dataset.vkvkViewRaw = raw;
     node.dataset.vkvkViewShown = text;
-    pieces.forEach(piece => {
-      if (piece.kind === 'view' && sawView) return;
-      if (piece.kind === 'date' && sawDate) return;
-      const shown = isOwnerWatch() && piece.kind === 'view' ? boostMetricText(pieces.length === 1 ? raw : piece.value) : piece.value;
-      if (shown && !bits.includes(shown)) bits.push(shown);
-      if (piece.kind === 'view') sawView = true;
-      else sawDate = true;
-    });
+    pieces.forEach(piece => pushPiece(piece.kind, piece.value, pieces.length === 1 ? raw : piece.value));
     if (!node.closest('ytd-watch-info-text')) node.classList.add('vkvk-live-views-source');
   });
+  const walker = document.createTreeWalker(description, NodeFilter.SHOW_TEXT);
+  let textNode: Node | null;
+  while ((textNode = walker.nextNode())) {
+    const parent = textNode.parentElement;
+    if (!parent || parent.closest('.vkvk-watch-views, button, .vkvk-desc-toggle')) continue;
+    const raw = (textNode.textContent || '').replace(/\u00a0/g, ' ');
+    const match = raw.match(gluedWatchMetrics);
+    if (!match) continue;
+    const view = watchMetricPiece(match[1].trim());
+    const date = match[2] ? watchMetricPiece(match[2].trim()) : null;
+    if (view?.kind === 'view') pushPiece('view', view.value, match[1].trim());
+    if (date?.kind === 'date') pushPiece('date', date.value);
+    const rest = raw.slice(match[0].length).replace(/^\s+/, '');
+    if (textNode.textContent !== rest) textNode.textContent = rest;
+    break;
+  }
   const shown = bits.join(' · ');
   if (shown && line.textContent !== shown) line.textContent = shown;
 }
@@ -690,10 +709,24 @@ function syncLikeHearts(): void {
     }, true);
   }
   if (contentRoute(location.pathname) !== 'watch') return;
-  const heartStyle = `button{width:fit-content!important;min-width:0!important;height:32px!important;padding:0 8px 0 6px!important;gap:2px!important}button :is(svg,yt-icon,.yt-spec-button-shape-next__icon){opacity:0!important}button::before{content:""!important;display:inline-block!important;width:16px!important;height:16px!important;margin-right:2px!important;background:#909499!important;vertical-align:-3px!important;-webkit-mask:var(--vkvk-heart) center/contain no-repeat!important;mask:var(--vkvk-heart) center/contain no-repeat!important}button[aria-pressed="true"]::before{background:#fff!important;-webkit-mask:var(--vkvk-heart-on) center/contain no-repeat!important;mask:var(--vkvk-heart-on) center/contain no-repeat!important}:is(yt-animated-rolling-number,.ytAnimatedRollingNumberNumber){animation:none!important;transition:none!important}`;
-  document.querySelectorAll<HTMLElement>('like-button-view-model').forEach(host => {
-    const root = host.shadowRoot;
-    const button = root?.querySelector('button') || host.querySelector('button');
+  const heartOutline = getComputedStyle(document.documentElement).getPropertyValue('--vkvk-heart').trim();
+  const heartFilled = getComputedStyle(document.documentElement).getPropertyValue('--vkvk-heart-on').trim();
+  const heartStyle = `button{width:fit-content!important;min-width:0!important;height:32px!important;padding:0 8px 0 6px!important;gap:2px!important}button :is(svg,yt-icon,.yt-spec-button-shape-next__icon,[class*="icon"]){display:none!important;width:0!important;height:0!important;opacity:0!important}button::before{content:""!important;display:inline-block!important;width:18px!important;height:18px!important;margin-right:4px!important;background:#909499!important;vertical-align:-4px!important;-webkit-mask:${heartOutline} center/contain no-repeat!important;mask:${heartOutline} center/contain no-repeat!important}button[aria-pressed="true"]::before{background:#fff!important;-webkit-mask:${heartFilled} center/contain no-repeat!important;mask:${heartFilled} center/contain no-repeat!important}:is(yt-animated-rolling-number,.ytAnimatedRollingNumberNumber){animation:none!important;transition:none!important}`;
+  const likeHosts = new Set<HTMLElement>();
+  const collectLikes = (root: ParentNode) => {
+    root.querySelectorAll<HTMLElement>('like-button-view-model, segmented-like-dislike-button-view-model').forEach(host => likeHosts.add(host));
+    root.querySelectorAll<HTMLButtonElement>('button').forEach(button => {
+      const label = `${button.getAttribute('aria-label') || ''} ${button.getAttribute('title') || ''}`;
+      if (/не\s*нравит|dislike/i.test(label) || !/нравит|like|лайк/i.test(label)) return;
+      likeHosts.add(button.closest('like-button-view-model') || button);
+    });
+    root.querySelectorAll('*').forEach(node => { if (node.shadowRoot) collectLikes(node.shadowRoot); });
+  };
+  const metadata = document.querySelector('ytd-watch-metadata') || document.body;
+  collectLikes(metadata);
+  likeHosts.forEach(host => {
+    const root = host.shadowRoot || (host.getRootNode() instanceof ShadowRoot ? host.getRootNode() as ShadowRoot : null);
+    const button = host.shadowRoot?.querySelector('button') || host.querySelector('button') || (host instanceof HTMLButtonElement ? host : null);
     const pressed = button?.getAttribute('aria-pressed') === 'true';
     host.dataset.vkvkLiked = pressed ? 'true' : 'false';
     const likeStyle = root?.querySelector<HTMLStyleElement>('style[data-vkvk-like]');
@@ -703,6 +736,12 @@ function syncLikeHearts(): void {
       style.textContent = heartStyle;
       root.append(style);
     } else if (likeStyle && likeStyle.textContent !== heartStyle) likeStyle.textContent = heartStyle;
+    deepEach(root || host, node => {
+      if (!(node instanceof HTMLElement)) return;
+      if (node.tagName === 'SVG' || node.tagName === 'YT-ICON' || node.classList.contains('yt-spec-button-shape-next__icon')) {
+        node.style.setProperty('display', 'none', 'important');
+      }
+    });
     if (isOwnerWatch() && !host.dataset.vkvkLikesPinned) {
       host.dataset.vkvkLikesPinned = '1';
       host.style.setProperty('--vkvk-likes', JSON.stringify(deterministicFunLikes()));
@@ -816,10 +855,17 @@ function decorateOwnerMode(): void {
 }
 
 function decorateDescriptions(): void {
-  document.querySelectorAll<HTMLElement>('ytd-watch-metadata #description').forEach(description => {
-    const text = description.querySelector<HTMLElement>('yt-attributed-string, .yt-core-attributed-string, #plain-snippet-text, #attributed-snippet-text, #description-text')
+  document.querySelectorAll<HTMLElement>('ytd-watch-metadata #description, ytd-watch-metadata ytd-text-inline-expander, ytd-watch-metadata ytd-expandable-video-description-body-renderer').forEach(description => {
+    const text = deepQuery<HTMLElement>(description, 'yt-attributed-string, .yt-core-attributed-string, #plain-snippet-text, #attributed-snippet-text, #description-text')
       || [...description.children].find((node): node is HTMLElement => node instanceof HTMLElement && !node.matches('button, .vkvk-desc-toggle, ytd-structured-description-content-renderer, ytd-video-description-infocards-section-renderer'));
-    text?.classList.add('vkvk-desc-text');
+    if (text) {
+      text.classList.add('vkvk-desc-text');
+      text.style.setProperty('background', '#2c2d2e', 'important');
+      text.style.setProperty('border', '1px solid #6d7074', 'important');
+      text.style.setProperty('border-radius', '12px', 'important');
+      text.style.setProperty('padding', '12px 14px', 'important');
+      text.style.setProperty('box-sizing', 'border-box', 'important');
+    }
     if (!description.querySelector('.vkvk-desc-toggle')) {
       const toggle = element('button', 'vkvk-desc-toggle', 'Показать полностью');
       toggle.type = 'button';

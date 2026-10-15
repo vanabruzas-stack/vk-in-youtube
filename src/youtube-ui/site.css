@@ -454,7 +454,13 @@ html.vkvk-site ytd-watch-metadata :is(#actions button, ytd-menu-renderer button)
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model{position:relative!important;display:inline-flex!important;width:fit-content!important;min-width:0!important;height:32px!important;overflow:visible!important;vertical-align:middle!important;border-radius:8px!important}
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model button{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;color:transparent!important;background:transparent!important}
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model button :is(svg,yt-icon,.yt-spec-button-shape-next__icon,.yt-spec-button-shape-next__button-text-content,span){opacity:0!important;color:transparent!important}
-html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model button::before{content:''!important;background:transparent!important}
+html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model button:not([aria-pressed='true'])::before{content:''!important;width:18px!important;height:18px!important;background:#909499!important;-webkit-mask:var(--vkvk-heart) center/contain no-repeat!important;mask:var(--vkvk-heart) center/contain no-repeat!important}
+html.vkvk-site ytd-watch-metadata button[aria-label*='Нравится' i]:not([aria-label*='Не' i])::before,
+html.vkvk-site ytd-watch-metadata button[aria-label*='Like' i]:not([aria-label*='Dislike' i])::before{content:''!important;display:inline-block!important;width:18px!important;height:18px!important;margin-right:4px!important;background:#909499!important;-webkit-mask:var(--vkvk-heart) center/contain no-repeat!important;mask:var(--vkvk-heart) center/contain no-repeat!important}
+html.vkvk-site ytd-watch-metadata button[aria-pressed='true'][aria-label*='Нравится' i]::before,
+html.vkvk-site ytd-watch-metadata button[aria-pressed='true'][aria-label*='Like' i]::before{background:#fff!important;-webkit-mask:var(--vkvk-heart-on) center/contain no-repeat!important;mask:var(--vkvk-heart-on) center/contain no-repeat!important}
+html.vkvk-site ytd-watch-metadata button[aria-label*='Нравится' i]:not([aria-label*='Не' i]) :is(svg,yt-icon),
+html.vkvk-site ytd-watch-metadata button[aria-label*='Like' i]:not([aria-label*='Dislike' i]) :is(svg,yt-icon){display:none!important}
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model::after{content:var(--vkvk-likes);position:relative!important;inset:auto!important;z-index:2;width:max-content;box-sizing:border-box;padding:0 10px 0 26px;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;font:500 13px/32px VKLocal,Roboto,Arial,sans-serif;pointer-events:none;white-space:nowrap}
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model::before{content:"";position:absolute;z-index:3;left:8px;top:8px;width:16px;height:16px;background:#909499;pointer-events:none;-webkit-mask:var(--vkvk-heart) center/contain no-repeat;mask:var(--vkvk-heart) center/contain no-repeat}
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model:has(button[aria-pressed='true'])::before,
@@ -490,8 +496,11 @@ html.vkvk-site .vkvk-watch-views{
   display:block;
   margin:12px 0 8px;
   min-height:18px;
+  overflow:hidden;
   color:var(--vk-muted);
-  font:400 13px/18px VKLocal,Roboto,Arial,sans-serif
+  font:400 13px/18px VKLocal,Roboto,Arial,sans-serif;
+  white-space:nowrap;
+  text-overflow:ellipsis
 }
 html.vkvk-site ytd-watch-metadata :is(#description,ytd-text-inline-expander) .vkvk-watch-views{display:none!important}
 html.vkvk-site .vkvk-live-views-source{
@@ -530,10 +539,10 @@ html.vkvk-site ytd-watch-metadata .vkvk-desc-text{
   max-height:72px!important;
   overflow:hidden!important;
   margin:0!important;
-  padding:10px 12px!important;
-  background:var(--vk-panel)!important;
-  border:1px solid #303132!important;
-  border-radius:10px!important
+  padding:12px 14px!important;
+  background:#2c2d2e!important;
+  border:1px solid #6d7074!important;
+  border-radius:12px!important
 }
 html.vkvk-site ytd-watch-metadata #description.vkvk-desc-open .vkvk-desc-text{max-height:none!important;overflow:visible!important}
 html.vkvk-site .vkvk-desc-toggle{display:inline-flex;margin:6px 0 0;padding:0;border:0;background:none;color:#71aaeb;font:500 13px/18px VKLocal,Roboto,Arial,sans-serif;cursor:pointer}
