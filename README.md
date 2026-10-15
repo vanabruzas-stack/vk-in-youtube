@@ -1,5 +1,19 @@
 # YouTube в интерфейсе VK Видео
 
+## Второе расширение: VK Видео в стиле YouTube
+
+Теперь в репозитории есть отдельное расширение для обратного направления: оно оформляет **VK Видео и Кабинет автора** в стиле YouTube и YouTube Studio. Первое расширение для YouTube работает независимо.
+
+- [Установщик для Windows](downloads/YouTube-for-VK-Setup-0.1.0.exe) и [его файл конфигурации](downloads/YouTube-for-VK-Setup-0.1.0.exe.config) — сохраните рядом и запустите установщик.
+- [ZIP для Chrome и Edge](downloads/youtube-for-vk-0.1.0.zip) — распакуйте, откройте `chrome://extensions` или `edge://extensions`, включите режим разработчика и загрузите папку.
+- [Исходники и подробная установка](reverse-extension/README.md).
+
+![Настройки второго расширения](docs/reverse-popup-0.1.0.png)
+
+![VK Видео Live после установки второго расширения](docs/reverse-live-0.1.0.png)
+
+---
+
 Расширение для Chrome и Edge. Оно рисует YouTube и YouTube Studio так, как выглядит VK Видео, и не подменяет сами ролики.
 
 ## Для кого

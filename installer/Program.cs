@@ -6,6 +6,23 @@ using System.Text.RegularExpressions;
 
 namespace VkYouTubeSetup;
 
+internal static class SetupBrand
+{
+#if REVERSE_EXTENSION
+    internal const string Title = "VK Видео в стиле YouTube";
+    internal const string DestinationFolder = "VK Video in YouTube Style";
+    internal const string RefreshTabs = "VK Видео и кабинета автора";
+    internal const string FontName = "Arial";
+    internal static readonly Color Accent = Color.FromArgb(255, 0, 51);
+#else
+    internal const string Title = "VK Видео для YouTube";
+    internal const string DestinationFolder = "VK Video for YouTube";
+    internal const string RefreshTabs = "YouTube";
+    internal const string FontName = "VK Sans Display";
+    internal static readonly Color Accent = Color.FromArgb(38, 136, 235);
+#endif
+}
+
 internal sealed class BrowserChoice
 {
     internal BrowserChoice(string name, string exe, string extensionsUrl)
@@ -120,7 +137,7 @@ internal sealed class SetupForm : Form
     private static readonly Color Panel = Color.FromArgb(34, 34, 34);
     private static readonly Color TextColor = Color.FromArgb(225, 227, 230);
     private static readonly Color Muted = Color.FromArgb(153, 162, 173);
-    private static readonly Color Blue = Color.FromArgb(38, 136, 235);
+    private static readonly Color Blue = SetupBrand.Accent;
     private readonly IReadOnlyList<BrowserChoice> browsers;
     private readonly ComboBox browserPicker = new();
     private readonly Label instruction = new();
@@ -131,7 +148,7 @@ internal sealed class SetupForm : Form
     internal SetupForm(IReadOnlyList<BrowserChoice> browsers)
     {
         this.browsers = browsers;
-        Text = "VK Видео для YouTube — установка";
+        Text = SetupBrand.Title + " — установка";
         ClientSize = new Size(542, 480);
         MinimumSize = MaximumSize = Size;
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -139,12 +156,12 @@ internal sealed class SetupForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         BackColor = Background;
         ForeColor = TextColor;
-        Font = new Font("VK Sans Display", 10, FontStyle.Regular, GraphicsUnit.Point);
+        Font = new Font(SetupBrand.FontName, 10, FontStyle.Regular, GraphicsUnit.Point);
         DoubleBuffered = true;
 
         var logo = new VkMark { Location = new Point(28, 24), Size = new Size(40, 40) };
         Controls.Add(logo);
-        AddLabel("VK Видео для YouTube", 80, 22, 18, FontStyle.Bold, TextColor);
+        AddLabel(SetupBrand.Title, 80, 22, 18, FontStyle.Bold, TextColor);
         AddLabel("Простая установка оформления браузера", 82, 58, 10, FontStyle.Regular, Muted);
 
         var card = new Panel { BackColor = Panel, Location = new Point(25, 108), Size = new Size(492, 318) };
@@ -221,7 +238,7 @@ internal sealed class SetupForm : Form
         return label;
     }
 
-    private static string Destination => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VK Video for YouTube", "Extension");
+    private static string Destination => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), SetupBrand.DestinationFolder, "Extension");
 
     private void Prepare()
     {
@@ -244,7 +261,7 @@ internal sealed class SetupForm : Form
                     ? "1. В открытой странице расширений включите «Режим разработчика».\n"
                     : "1. Откройте адрес из буфера и включите «Режим разработчика».\n") +
                 "2. Нажмите «Загрузить распакованное» и выберите папку «Extension».\n" +
-                "3. При обновлении нажмите ↻ на карточке расширения, затем обновите вкладки YouTube.";
+                "3. При обновлении нажмите ↻ на карточке расширения, затем обновите вкладки " + SetupBrand.RefreshTabs + ".";
             installButton.Text = "Повторить (файлы обновятся)";
             copyUrl.Visible = copyPath.Visible = true;
         }
@@ -261,12 +278,19 @@ internal sealed class VkMark : Control
     {
         base.OnPaint(e);
         e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+#if REVERSE_EXTENSION
+        using var red = new SolidBrush(Color.FromArgb(255, 0, 51));
+        using var white = new SolidBrush(Color.White);
+        e.Graphics.FillRoundedRectangle(red, new Rectangle(1, 5, 38, 30), 9);
+        e.Graphics.FillPolygon(white, [new Point(16, 12), new Point(29, 20), new Point(16, 28)]);
+#else
         using var blue = new SolidBrush(Color.FromArgb(0, 119, 255));
         using var red = new SolidBrush(Color.FromArgb(255, 43, 66));
         using var white = new SolidBrush(Color.White);
         e.Graphics.FillRoundedRectangle(blue, new Rectangle(1, 1, 37, 37), 9);
         e.Graphics.FillRoundedRectangle(red, new Rectangle(8, 1, 30, 37), 9);
         e.Graphics.FillPolygon(white, [new Point(14, 12), new Point(28, 20), new Point(14, 28)]);
+#endif
     }
 }
 

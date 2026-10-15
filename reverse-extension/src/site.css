@@ -1,0 +1,213 @@
+/* All rules are gated: disabling the skin restores VK's own layout. */
+html.vky-site {
+  color-scheme: dark;
+  --vky-bg: #0f0f0f;
+  --vky-surface: #212121;
+  --vky-hover: #272727;
+  --vky-line: #303030;
+  --vky-text: #f1f1f1;
+  --vky-muted: #aaa;
+  --vky-blue: #3ea6ff;
+}
+html.vky-site #spa_root,
+html.vky-site #spa_root .vkui--vkBase--light,
+html.vky-site #spa_root .vkui--vkBase--dark {
+  --vkui--color_background: #0f0f0f !important;
+  --vkui--color_background_content: #0f0f0f !important;
+  --vkui--color_background_secondary: #212121 !important;
+  --vkui--color_text_primary: #f1f1f1 !important;
+  --vkui--color_text_secondary: #aaa !important;
+}
+html.vky-site body,
+html.vky-site #spa_root {
+  background: var(--vky-bg) !important;
+  color: var(--vky-text);
+  font-family: Roboto, Arial, sans-serif !important;
+}
+html.vky-site .vkuiSplitLayout__host,
+html.vky-site .vkuiPanel__in,
+html.vky-site .vkuiGroup__host,
+html.vky-site [class*="vkitInternalGroup"] {
+  background-color: var(--vky-bg) !important;
+  border-color: var(--vky-line) !important;
+  color: var(--vky-text) !important;
+}
+html.vky-site [data-testid="video_spa_header"] {
+  height: 56px !important;
+  min-height: 56px !important;
+  background: var(--vky-bg) !important;
+  border-bottom: 1px solid transparent !important;
+  color: var(--vky-text);
+}
+html.vky-site [data-testid="video_spa_header"] > div:first-child {
+  min-width: 220px !important;
+}
+html.vky-site [data-testid="video_spa_header"] a[aria-label="На главную VK Видео"] {
+  min-width: 116px;
+  text-decoration: none !important;
+}
+html.vky-site [data-testid="video_spa_header"] a[aria-label="На главную VK Видео"] > svg {
+  display: none !important;
+}
+html.vky-site .vky-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #fff;
+  font: 700 20px/1 Roboto, Arial, sans-serif;
+  letter-spacing: -.9px;
+  white-space: nowrap;
+}
+html.vky-site .vky-brand svg { flex: none; }
+html.vky-site [data-testid="video_left_menu_toggle"] {
+  width: 40px !important;
+  min-width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  border-radius: 50% !important;
+  color: var(--vky-text) !important;
+}
+html.vky-site [data-testid="video_spa_header"] button:hover,
+html.vky-site [data-testid="video_spa_header"] a:hover {
+  background-color: var(--vky-hover) !important;
+}
+html.vky-site #video_service_search_input {
+  color: var(--vky-text) !important;
+  background: #121212 !important;
+  font: 16px Roboto, Arial, sans-serif !important;
+}
+html.vky-site #video_service_search_input::placeholder { color: #777 !important; }
+html.vky-site [data-testid="video_spa_header"] .vkuiSearch__field,
+html.vky-site [data-testid="video_spa_header"] .vkuiSearch__input,
+html.vky-site [data-testid="video_spa_header"] .vkuiSearch__controls {
+  background: #121212 !important;
+}
+html.vky-site [data-testid="video_spa_header"] .vkuiSearch__field {
+  border: 1px solid #303030 !important;
+  border-radius: 40px !important;
+  overflow: hidden;
+}
+html.vky-site [data-testid="video_spa_header"] .vkuiSearch__field:focus-within {
+  border-color: #1c62b9 !important;
+}
+html.vky-site [class*="MenuLayout__container"] {
+  background: var(--vky-bg) !important;
+  color: var(--vky-text);
+}
+html.vky-site a[data-testid^="main_menu_"] {
+  min-height: 40px !important;
+  border-radius: 10px !important;
+  margin: 1px 8px !important;
+  padding: 0 12px !important;
+  color: var(--vky-text) !important;
+  font: 500 14px Roboto, Arial, sans-serif !important;
+}
+html.vky-site a[data-testid^="main_menu_"] *,
+html.vky-site a[data-testid^="main_menu_"] svg {
+  color: var(--vky-text) !important;
+}
+html.vky-site a[data-testid^="main_menu_"]:hover,
+html.vky-site a[data-testid^="main_menu_"].vkuiTappable__activatedBackground {
+  background: var(--vky-hover) !important;
+}
+html.vky-site a[data-testid^="main_menu_"] .vkuiSimpleCell__before {
+  margin-right: 20px !important;
+}
+html.vky-site [data-testid="grid"] {
+  background: var(--vky-bg) !important;
+  column-gap: 16px !important;
+  row-gap: 36px !important;
+}
+html.vky-site [data-testid="video_card_layout"] {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: var(--vky-text) !important;
+}
+html.vky-site [data-testid="video_card_thumb"],
+html.vky-site [data-testid="video_card_thumb"] > div,
+html.vky-site [data-testid="video_card_thumb"] img {
+  border-radius: 12px !important;
+}
+html.vky-site [data-testid="video_card_thumb"] img {
+  object-fit: cover !important;
+}
+html.vky-site [data-testid="video_card_duration"] {
+  background: rgba(0,0,0,.82) !important;
+  color: #fff !important;
+  border-radius: 4px !important;
+  font: 600 12px Roboto, Arial, sans-serif !important;
+}
+html.vky-site [data-testid="video_card_layout"] a:not([data-testid="video_card_thumb"]) {
+  color: inherit;
+}
+html.vky-site [data-testid="video_card_layout"] a:hover { text-decoration: none !important; }
+html.vky-site [data-testid="video_card_layout"] [class*="Title"],
+html.vky-site [data-testid="video_card_layout"] [class*="title"] {
+  color: var(--vky-text) !important;
+  font-family: Roboto, Arial, sans-serif !important;
+}
+html.vky-site .vkuiTabs__host,
+html.vky-site [role="tablist"] {
+  border-bottom: 1px solid var(--vky-line) !important;
+  background: var(--vky-bg) !important;
+}
+html.vky-site [role="tab"],
+html.vky-site .vkuiTabsItem__host {
+  color: var(--vky-muted) !important;
+  font: 500 14px Roboto, Arial, sans-serif !important;
+  border-radius: 0 !important;
+}
+html.vky-site [role="tab"][aria-selected="true"],
+html.vky-site .vkuiTabsItem__selected {
+  color: #fff !important;
+  border-bottom: 2px solid #f1f1f1 !important;
+}
+html.vky-site .vkuiButton__host,
+html.vky-site .vkuiButton__host::before {
+  border-radius: 20px !important;
+}
+html.vky-site .vkuiButton__modeSecondary,
+html.vky-site .vkuiButton__modeTertiary {
+  background: var(--vky-hover) !important;
+  color: var(--vky-text) !important;
+}
+html.vky-site .vkuiButton__modePrimary {
+  background: #f1f1f1 !important;
+  color: #0f0f0f !important;
+}
+html.vky-site .vkuiInput__el,
+html.vky-site .vkuiTextarea__el,
+html.vky-site input:not([type="checkbox"]):not([type="radio"]),
+html.vky-site textarea {
+  font-family: Roboto, Arial, sans-serif !important;
+}
+html.vky-site .vkuiPopout__host,
+html.vky-site .vkuiModalPage__in,
+html.vky-site .vkuiActionSheet__content,
+html.vky-site .vkuiCustomSelectDropdown__in {
+  color: var(--vky-text) !important;
+}
+html.vky-site.vky-watch [data-testid="video_card_thumb"] { border-radius: 8px !important; }
+html.vky-site.vky-watch [class*="VideoPlayer"]:fullscreen,
+html.vky-site.vky-watch video:fullscreen { background: #000 !important; }
+/* The native VK player, controls and full-screen layer are deliberately untouched. */
+
+/* live.vkvideo.ru is a separate application with its own DOM. */
+html.vky-site body.live,
+html.vky-site body.live #root { background: #0f0f0f !important; color: #f1f1f1 !important; font-family: Roboto, Arial, sans-serif !important; }
+html.vky-site body.live #topMenu { height: 56px !important; background: #0f0f0f !important; border-bottom: 1px solid #303030 !important; }
+html.vky-site body.live #topMenu a[class*="TopMenu_logoLink"] > *:not(.vky-brand) { display: none !important; }
+html.vky-site body.live #topMenu .vky-brand { display: inline-flex !important; }
+html.vky-site body.live .vky-live-badge { margin-left: 5px; padding: 3px 5px; background: #f03; border-radius: 3px; color: white; font: 700 11px Roboto, Arial, sans-serif; letter-spacing: 0; }
+html.vky-site body.live #topMenu input { background: #121212 !important; border: 1px solid #303030 !important; border-radius: 40px !important; color: #f1f1f1 !important; }
+html.vky-site body.live [class*="Sidebar_root"],
+html.vky-site body.live [class*="DrawerLeft_content"] { background: #0f0f0f !important; border-color: #303030 !important; }
+html.vky-site body.live a[class*="CollapsibleLink_root"] { min-height: 40px; border-radius: 10px !important; color: #f1f1f1 !important; }
+html.vky-site body.live a[class*="CollapsibleLink_root"]:hover,
+html.vky-site body.live a[class*="CollapsibleLink_active"] { background: #272727 !important; }
+html.vky-site body.live [class*="CatalogShowcaseStream_container"],
+html.vky-site body.live [class*="CatalogShowcaseStream_link"],
+html.vky-site body.live [class*="CatalogShowcaseStream"] img { border-radius: 12px !important; }
+html.vky-site body.live [class*="CatalogShowcaseStream_container"] { border-color: #303030 !important; background: #181818 !important; }
+html.vky-site body.live button:not([class*="Player"]):not([class*="player"]):hover { filter: brightness(1.15); }

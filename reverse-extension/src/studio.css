@@ -1,0 +1,172 @@
+html.vky-studio {
+  color-scheme: dark;
+  --vky-bg: #0f0f0f;
+  --vky-panel: #212121;
+  --vky-raised: #282828;
+  --vky-hover: #303030;
+  --vky-line: #383838;
+  --vky-text: #f1f1f1;
+  --vky-muted: #aaa;
+  --vky-blue: #3ea6ff;
+}
+html.vky-studio #spa_root,
+html.vky-studio #spa_root .vkui--vkBase--light,
+html.vky-studio #spa_root .vkui--vkBase--dark {
+  --vkui--color_background: #0f0f0f !important;
+  --vkui--color_background_content: #0f0f0f !important;
+  --vkui--color_background_secondary: #212121 !important;
+  --vkui--color_text_primary: #f1f1f1 !important;
+  --vkui--color_text_secondary: #aaa !important;
+}
+html.vky-studio body,
+html.vky-studio #spa_root {
+  background: var(--vky-bg) !important;
+  color: var(--vky-text) !important;
+  font-family: Roboto, Arial, sans-serif !important;
+}
+html.vky-studio [data-testid="video_spa_header"] {
+  height: 64px !important;
+  min-height: 64px !important;
+  border-bottom: 1px solid var(--vky-line) !important;
+  background: var(--vky-panel) !important;
+  color: var(--vky-text);
+}
+html.vky-studio [data-testid="video_spa_header"] > div:first-child { min-width: 240px !important; }
+html.vky-studio [data-testid="video_spa_header"] a[aria-label="На главную VK Видео"] > svg { display: none !important; }
+html.vky-studio [data-testid="video_spa_header"] a[aria-label="На главную VK Видео"] {
+  min-width: 175px;
+  text-decoration: none !important;
+}
+html.vky-studio .vky-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #fff;
+  white-space: nowrap;
+  font: 700 20px/1 Roboto, Arial, sans-serif;
+  letter-spacing: -.8px;
+}
+html.vky-studio .vky-studio-word { font-weight: 400; letter-spacing: -.5px; }
+html.vky-studio [data-testid="video_left_menu_toggle"] {
+  width: 40px !important;
+  min-width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  border-radius: 50% !important;
+}
+html.vky-studio [class*="MenuLayout__container"] {
+  background: var(--vky-panel) !important;
+  border-right: 1px solid var(--vky-line) !important;
+}
+html.vky-studio a[data-testid^="dashboard_aside_"] {
+  min-height: 44px !important;
+  margin: 1px 8px !important;
+  padding: 0 12px !important;
+  border-radius: 4px !important;
+  color: var(--vky-text) !important;
+  font: 500 14px Roboto, Arial, sans-serif !important;
+}
+html.vky-studio a[data-testid^="dashboard_aside_"]:hover { background: var(--vky-hover) !important; }
+html.vky-studio a[data-testid^="dashboard_aside_"].vkuiTappable__activatedBackground {
+  background: rgba(255,255,255,.1) !important;
+  color: #ff4e65 !important;
+  border-left: 3px solid #ff0033 !important;
+  padding-left: 9px !important;
+}
+html.vky-studio a[data-testid^="dashboard_aside_"] .vkuiSimpleCell__before { margin-right: 20px !important; }
+html.vky-studio [class*="WebPageContentLayout__main"] { background: var(--vky-bg) !important; }
+html.vky-studio [data-testid="dashboard_header"] {
+  background: var(--vky-bg) !important;
+  color: var(--vky-text) !important;
+  font: 700 24px Roboto, Arial, sans-serif !important;
+  border: 0 !important;
+}
+html.vky-studio [class*="DashboardLayout__gridContainer"] { gap: 16px !important; }
+html.vky-studio [class*="DashboardLayoutItem__gridItem"] {
+  background: transparent !important;
+}
+html.vky-studio [class*="DashboardLayoutItem__gridItem"] > *,
+html.vky-studio .vkuiGroup__modeCard,
+html.vky-studio [class*="vkitInternalGroupCard"] {
+  background: var(--vky-panel) !important;
+  border: 1px solid var(--vky-line) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  color: var(--vky-text) !important;
+}
+html.vky-studio [data-testid="video_dashboard_advanced_table"] {
+  border: 1px solid var(--vky-line) !important;
+  border-radius: 4px !important;
+  background: var(--vky-panel) !important;
+  color: var(--vky-text) !important;
+}
+html.vky-studio [data-testid="video_dashboard_advanced_table"] table {
+  background: var(--vky-panel) !important;
+  color: var(--vky-text) !important;
+  border-collapse: collapse !important;
+}
+html.vky-studio [data-testid="video_dashboard_advanced_table"] th {
+  background: var(--vky-panel) !important;
+  color: var(--vky-muted) !important;
+  font: 500 12px Roboto, Arial, sans-serif !important;
+  border-bottom: 1px solid var(--vky-line) !important;
+}
+html.vky-studio [data-testid="video_dashboard_advanced_table"] td {
+  border-bottom: 1px solid var(--vky-line) !important;
+  color: var(--vky-text) !important;
+  font-family: Roboto, Arial, sans-serif !important;
+}
+html.vky-studio [data-testid="video_dashboard_advanced_table"] tr:hover td { background: var(--vky-raised) !important; }
+html.vky-studio [data-testid="video_dashboard_advanced_table"] img { border-radius: 2px !important; }
+html.vky-studio [data-testid^="dashboard_subsection_"] {
+  border-radius: 0 !important;
+  color: var(--vky-muted) !important;
+}
+html.vky-studio [data-testid^="dashboard_filter_"] { border-radius: 4px !important; }
+html.vky-studio .vkuiTabs__host,
+html.vky-studio [role="tablist"] {
+  background: transparent !important;
+  border-bottom: 1px solid var(--vky-line) !important;
+}
+html.vky-studio .vkuiTabsItem__host,
+html.vky-studio [role="tab"] {
+  border-radius: 0 !important;
+  color: var(--vky-muted) !important;
+  font: 500 14px Roboto, Arial, sans-serif !important;
+}
+html.vky-studio .vkuiTabsItem__selected,
+html.vky-studio [role="tab"][aria-selected="true"] {
+  color: var(--vky-text) !important;
+  border-bottom: 2px solid var(--vky-text) !important;
+}
+html.vky-studio .vkuiButton__host,
+html.vky-studio .vkuiButton__host::before { border-radius: 4px !important; }
+html.vky-studio .vkuiButton__modePrimary { background: var(--vky-blue) !important; color: #0f0f0f !important; }
+html.vky-studio .vkuiButton__modeSecondary,
+html.vky-studio .vkuiButton__modeTertiary { background: var(--vky-raised) !important; color: var(--vky-text) !important; }
+html.vky-studio .vkuiFormField__host,
+html.vky-studio .vkuiInput__el,
+html.vky-studio .vkuiTextarea__el {
+  background: var(--vky-panel) !important;
+  color: var(--vky-text) !important;
+  border-color: var(--vky-line) !important;
+  border-radius: 4px !important;
+  font-family: Roboto, Arial, sans-serif !important;
+}
+html.vky-studio .vkuiModalPage__in,
+html.vky-studio .vkuiModalCardBase__container,
+html.vky-studio [class*="vkitInternalModalBox"],
+html.vky-studio .vkuiPopover__in,
+html.vky-studio .vkuiActionSheet__content,
+html.vky-studio .vkuiPopout__host,
+html.vky-studio .vkuiCustomSelectDropdown__in {
+  background: var(--vky-panel) !important;
+  color: var(--vky-text) !important;
+  border-color: var(--vky-line) !important;
+}
+html.vky-studio .vkuiModalPage__header,
+html.vky-studio .vkuiModalPage__footer { border-color: var(--vky-line) !important; }
+html.vky-studio .vkuiSeparator__in { background: var(--vky-line) !important; }
+html.vky-studio a:not([data-testid^="dashboard_aside_"]):hover,
+html.vky-studio button:hover { filter: brightness(1.12); }
+/* Forms, analytics charts, upload and publication actions remain native VK controls. */
