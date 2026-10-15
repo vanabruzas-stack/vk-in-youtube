@@ -134,11 +134,22 @@ html.vkvk-side-collapsed .vkvk-catalog{left:calc(var(--vk-side-collapsed) + 10px
 .vkvk-catalog-media img{display:block;width:100%;height:100%;object-fit:cover}
 .vkvk-catalog-media:hover img{filter:brightness(.92)}
 .vkvk-duration{position:absolute;right:6px;bottom:6px;padding:2px 5px;border-radius:4px;background:rgba(0,0,0,.76);color:#fff;font-size:11px;font-weight:500;line-height:15px}
+html.vkvk-site[data-vkvk-route='live'] ytd-browse{background:transparent!important}
+html.vkvk-site[data-vkvk-route='live'] .vkvk-live-head{flex:1 0 100%;width:100%;margin:8px 16px 16px;padding:4px 4px 0;box-sizing:border-box}
+html.vkvk-site[data-vkvk-route='live'] .vkvk-live-head h1{margin:0 0 12px;font-size:28px;line-height:34px;font-weight:700}
+html.vkvk-site[data-vkvk-route='live'] .vkvk-live-chips{display:flex;gap:8px;flex-wrap:wrap}
+html.vkvk-site[data-vkvk-route='live'] .vkvk-live-chips a{height:32px;padding:0 14px;border-radius:8px;background:var(--vk-raised);color:var(--vk-text)!important;font-size:14px;font-weight:500;line-height:32px;text-decoration:none!important}
+html.vkvk-site[data-vkvk-route='live'] .vkvk-live-chips a.active{background:#e1e3e6;color:#19191a!important}
+html.vkvk-site[data-vkvk-route='live'] ytd-rich-grid-renderer{--ytd-rich-grid-items-per-row:4!important}
+html.vkvk-site[data-vkvk-route='live'] :is(ytd-thumbnail,.ytThumbnailViewModelHost).vkvk-live-thumb{position:relative!important;border-radius:12px!important;overflow:hidden!important}
+html.vkvk-site[data-vkvk-route='live'] .vkvk-live-thumb .vkvk-live-label{position:absolute;top:8px;left:8px;right:auto;bottom:auto;padding:2px 6px;border-radius:4px;background:#ff3347;color:#fff;font-size:12px;font-weight:700;line-height:16px}
 .vkvk-live-play{position:absolute;left:50%;top:50%;display:grid;width:42px;height:42px;place-items:center;transform:translate(-50%,-50%);border-radius:50%;background:#fff;color:#222;font-size:18px;padding-left:2px;box-shadow:0 2px 12px #0006}
 .vkvk-live-label{position:absolute;right:6px;bottom:6px;padding:2px 5px;border-radius:4px;background:#ff3347;color:#fff;font-size:11px;font-weight:700;line-height:16px}
 .vkvk-catalog-media:has(.vkvk-live-label) .vkvk-duration{display:none}
 .vkvk-catalog-body{position:relative;display:flex;gap:8px;padding:7px 24px 0 0}
+.vkvk-card-avatar-link{flex:none;display:block;line-height:0}
 .vkvk-card-avatar{width:24px;height:24px;border-radius:50%;object-fit:cover;flex:none}
+.vkvk-card-channel{display:block;color:var(--vk-muted)!important;text-decoration:none!important}
 .vkvk-card-avatar-fallback{display:block;background:#3a3b3c}
 .vkvk-card-copy{min-width:0}
 .vkvk-card-title{display:-webkit-box;overflow:hidden;color:var(--vk-text)!important;font-size:14px;font-weight:500;line-height:18px;-webkit-box-orient:vertical;-webkit-line-clamp:2}
@@ -506,11 +517,25 @@ html.vkvk-site ytd-browse[page-subtype='history'] ytd-video-renderer :is(ytd-thu
 html.vkvk-site ytd-search ytd-video-renderer #dismissible{gap:16px}
 html.vkvk-site :is(ytd-watch-metadata #description,ytd-text-inline-expander){
   display:block!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important
+}
+html.vkvk-site ytd-watch-metadata .vkvk-desc-text{
+  display:block!important;
+  box-sizing:border-box!important;
+  max-height:72px!important;
+  overflow:hidden!important;
+  margin:0!important;
+  padding:10px 12px!important;
   background:var(--vk-panel)!important;
   border:1px solid #303132!important;
   border-radius:10px!important
 }
-html.vkvk-site ytd-text-inline-expander #description{background:transparent!important;border:0!important;border-radius:0!important}
+html.vkvk-site ytd-watch-metadata #description.vkvk-desc-open .vkvk-desc-text{max-height:none!important;overflow:visible!important}
+html.vkvk-site .vkvk-desc-toggle{display:inline-flex;margin:6px 0 0;padding:0;border:0;background:none;color:#71aaeb;font:500 13px/18px VKLocal,Roboto,Arial,sans-serif;cursor:pointer}
+html.vkvk-site ytd-watch-metadata :is(ytd-structured-description-content-renderer,ytd-video-description-infocards-section-renderer){margin-top:12px!important}
 html.vkvk-site :is(ytd-watch-metadata,ytd-comments) :is(.yt-spec-button-shape-next--tonal,.ytSpecButtonShapeNextTonal){
   border:1px solid #3a3b3c!important
 }
@@ -820,7 +845,7 @@ html.vkvk-owner-channel .ytPageHeaderViewModelHeadline .vkvk-owner-controls{
 html.vkvk-owner-channel .vkvk-sort-chips{display:flex!important;justify-content:flex-start!important;gap:8px;width:fit-content!important;margin:10px 16px 0!important;padding:0!important}
 html.vkvk-owner-channel .vkvk-sort-chips a{height:32px;padding:0 12px;border-radius:8px;background:var(--vk-raised);color:var(--vk-text);font-size:14px;line-height:32px;text-decoration:none!important}
 html.vkvk-owner-channel .vkvk-sort-chips a.active{background:#e1e3e6;color:#19191a}
-html.vkvk-owner-channel ytd-feed-filter-chip-bar-renderer{display:none!important}
+html.vkvk-owner-channel :is(#chips-wrapper,ytd-feed-filter-chip-bar-renderer,yt-chip-cloud-renderer,yt-chip-bar-view-model){display:none!important}
 html.vkvk-watch :is(#movie_player,ytd-player,.html5-video-player){overflow:visible!important}
 html.vkvk-owner-video ytd-watch-metadata :is(yt-subscribe-button-view-model,ytd-subscribe-button-renderer){display:none!important}
 html.vkvk-owner-video ytd-watch-metadata button[aria-label='Ещё'],
@@ -884,7 +909,28 @@ html.vkvk-site[data-vkvk-route='channel']:not(.vkvk-owner-channel) .ytPageHeader
 }
 html.vkvk-site[data-vkvk-route='channel']:not(.vkvk-owner-channel) .ytPageHeaderViewModelHeadline :is(yt-decorated-avatar-view-model,yt-avatar-shape,#avatar){
   left:0!important;
-  margin:0!important
+  width:80px!important;
+  min-width:80px!important;
+  height:80px!important;
+  margin:20px 0 0!important;
+  border-radius:50%!important
+}
+html.vkvk-site[data-vkvk-route='channel']:not(.vkvk-owner-channel) :is(
+  yt-page-header-view-model yt-avatar-shape,
+  yt-page-header-view-model .yt-spec-avatar-shape,
+  ytd-c4-tabbed-header-renderer #avatar,
+  ytd-tabbed-page-header #avatar
+){width:80px!important;min-width:80px!important;height:80px!important;margin-top:20px!important}
+html.vkvk-site[data-vkvk-route='channel']:not(.vkvk-owner-channel) :is(
+  yt-page-header-view-model yt-avatar-shape img,
+  yt-page-header-view-model .yt-spec-avatar-shape__image,
+  ytd-c4-tabbed-header-renderer #avatar img,
+  ytd-tabbed-page-header #avatar img
+){width:80px!important;height:80px!important;border:3px solid var(--vk-panel)!important;box-sizing:border-box!important}
+html.vkvk-site[data-vkvk-route='channel']:not(.vkvk-owner-channel) .ytPageHeaderViewModelHeadline :is(yt-subscribe-button-view-model,ytd-subscribe-button-renderer){
+  flex:none!important;
+  align-self:flex-start!important;
+  margin:26px 0 0 auto!important
 }
 html.vkvk-site[data-vkvk-route='channel'] .ytPageHeaderViewModelHeadline :is(h1,h2,.ytFormattedStringHost,.ytPageHeaderViewModelTitle){
   position:static!important;
@@ -917,15 +963,28 @@ html.vkvk-site :is(yt-tab-group-shape,yt-tab-shape) [class*='underline']{content
 
 html.vkvk-site[data-vkvk-route='trending'] ytd-browse #contents{overflow:visible!important}
 html.vkvk-site[data-vkvk-route='trending'] :is(ytd-video-renderer,yt-lockup-view-model){
+  display:block!important;
+  height:auto!important;
   max-width:980px!important;
   margin:0 auto 10px!important;
   padding:10px!important;
+  overflow:hidden!important;
   border:1px solid #2d2e2f!important;
   border-radius:12px!important;
   background:var(--vk-panel)!important
 }
+html.vkvk-site[data-vkvk-route='trending'] :is(ytd-video-renderer #dismissible,yt-lockup-view-model>.yt-lockup-view-model,yt-lockup-view-model>.ytLockupViewModelHost){
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:flex-start!important;
+  gap:12px!important;
+  width:100%!important;
+  min-width:0!important;
+  height:auto!important
+}
 html.vkvk-site[data-vkvk-route='trending'] :is(ytd-video-renderer,yt-lockup-view-model):hover{background:var(--vk-raised)!important}
 html.vkvk-site[data-vkvk-route='trending'] :is(ytd-thumbnail,.ytThumbnailViewModelHost){
+  flex:none!important;
   width:360px!important;
   min-width:360px!important;
   max-width:360px!important;
@@ -934,6 +993,31 @@ html.vkvk-site[data-vkvk-route='trending'] :is(ytd-thumbnail,.ytThumbnailViewMod
   border-radius:10px!important;
   background:#000!important
 }
+html.vkvk-site[data-vkvk-route='trending'] :is(#meta,#details,.metadata,.ytLockupMetadataViewModelHost,.yt-lockup-metadata){
+  position:static!important;
+  flex:1 1 auto!important;
+  min-width:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+  transform:none!important
+}
+html.vkvk-site[data-vkvk-route='trending'] :is(#video-title,.ytLockupMetadataViewModelTitle,h3){
+  position:static!important;
+  display:-webkit-box!important;
+  overflow:hidden!important;
+  max-width:100%!important;
+  margin:0!important;
+  transform:none!important;
+  text-indent:0!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important
+}
+html.vkvk-site[data-vkvk-route='trending'] :is(ytd-channel-name a,#channel-name a,.ytLockupMetadataViewModelAvatar,a[href*='/@'],a[href*='/channel/']){
+  position:relative!important;
+  z-index:2!important;
+  pointer-events:auto!important
+}
+html.vkvk-site[data-vkvk-route='trending'] :is(.ytContentMetadataViewModelMetadataRow,#metadata-line) .ytBadgeShapeHost{display:none!important}
 .vkvk-native-owner-promo{
   display:block;
   max-width:980px;
@@ -1112,32 +1196,13 @@ html.vkvk-site[data-vkvk-route='watch'] ytd-watch-flexy #secondary :is(
   background:#000!important
 }
 html.vkvk-site:is(.vkvk-owner-channel,.vkvk-owner-video) .vkvk-owner-native-subscribe{display:none!important}
-html.vkvk-site[data-vkvk-route='watch'] ytd-watch-metadata #description{
-  pointer-events:auto!important;
-  overflow:hidden!important;
-  max-height:96px!important
-}
-html.vkvk-site[data-vkvk-route='watch'] ytd-watch-metadata #description.vkvk-desc-open{
-  max-height:none!important;
-  overflow:visible!important
-}
-html.vkvk-site .vkvk-desc-collapse{display:none;margin:0 0 8px;padding:0;border:0;background:none;color:#71aaeb;font:500 13px/18px VKLocal,Roboto,Arial,sans-serif;cursor:pointer}
-html.vkvk-site #description.vkvk-desc-open .vkvk-desc-collapse{display:inline-flex}
+html.vkvk-site[data-vkvk-route='watch'] ytd-watch-metadata #description,
 html.vkvk-site[data-vkvk-route='watch'] ytd-text-inline-expander{
-  pointer-events:auto!important
+  pointer-events:auto!important;
+  overflow:visible!important;
+  max-height:none!important
 }
-html.vkvk-site[data-vkvk-route='watch'] :is(
-  ytd-watch-metadata #description #expand,
-  ytd-text-inline-expander #expand
-){display:inline-flex!important;visibility:visible!important;pointer-events:auto!important}
-html.vkvk-site[data-vkvk-route='watch'] ytd-text-inline-expander #collapse{display:none!important}
-html.vkvk-site[data-vkvk-route='watch'] ytd-text-inline-expander:is([is-expanded],[expanded]){overflow:visible!important}
-html.vkvk-site[data-vkvk-route='watch'] ytd-text-inline-expander:is([is-expanded],[expanded]) #expand{display:none!important}
-html.vkvk-site[data-vkvk-route='watch'] ytd-text-inline-expander:is([is-expanded],[expanded]) #collapse{
-  display:inline-flex!important;
-  visibility:visible!important;
-  pointer-events:auto!important
-}
+html.vkvk-site[data-vkvk-route='watch'] ytd-watch-metadata :is(#expand,#collapse,tp-yt-paper-button#expand){display:none!important}
 
 html.vkvk-site[data-vkvk-route='shorts'] ytd-reel-video-renderer :is(#actions,.reel-player-overlay-actions){
   visibility:visible!important;
@@ -1236,7 +1301,6 @@ html.vkvk-site .ytLockupViewModelMetadata :is(yt-badge-view-model,yt-inline-badg
   .vkvk-owner-related-card .vkvk-catalog-card{grid-template-columns:86px minmax(0,1fr)}
   .vkvk-owner-related-card .vkvk-catalog-media{width:86px}
   .vkvk-owner-related-card .vkvk-card-avatar{display:none}
-  html.vkvk-site[data-vkvk-route='trending'] :is(ytd-video-renderer #dismissible,yt-lockup-view-model){flex-direction:row!important}
   html.vkvk-site[data-vkvk-route='trending'] :is(ytd-thumbnail,.ytThumbnailViewModelHost){
     width:min(246px,42vw)!important;
     min-width:min(246px,42vw)!important;

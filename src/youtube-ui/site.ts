@@ -6,7 +6,7 @@ import { vkIcons, type VkIconName } from '../vk-design-system/vk-icons.generated
 type NavItem = { href: string; route: string; label: string; icon: VkIconName; external?: boolean; arrow?: boolean };
 
 const groups: NavItem[][] = [
-  [{ href: '/channel/UC4R8DWoMoI7CAwX8_LjQHig', route: 'live', label: 'Стримы', icon: 'live', arrow: true }],
+  [{ href: '/feed/live', route: 'live', label: 'Стримы', icon: 'live', arrow: true }],
   [
     { href: '/', route: 'home', label: 'Главная', icon: 'home' },
     { href: '/results?search_query=тренды+сегодня&vkvk=trending', route: 'trending', label: 'Тренды', icon: 'trends' },
@@ -111,7 +111,8 @@ function navLink(item: NavItem): HTMLAnchorElement {
   link.href = item.href;
   link.dataset.route = item.route;
   if (item.external) link.target = '_blank';
-  link.innerHTML = `${vkIcons[item.icon]}<span>${item.label}</span>${item.arrow ? vkIcons.chevronRight : ''}`;
+  const streamsIcon = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="3.2" y="4.2" width="17.6" height="15.6" rx="4" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="currentColor" d="M10.1 8.35v7.3l6.15-3.65z"/></svg>';
+  link.innerHTML = `${item.icon === 'live' ? streamsIcon : vkIcons[item.icon]}<span>${item.label}</span>${item.arrow ? vkIcons.chevronRight : ''}`;
   return link;
 }
 function clickNative(selector: string): boolean {
@@ -590,6 +591,17 @@ function boostOwnerCardCounts(): void {
   });
 }
 
+function watchMetricPiece(text: string): { kind: 'view' | 'date'; value: string } | null {
+  const clean = text.replace(/\s+/g, ' ').trim();
+  if (!clean || clean.length > 42 || /свернуть|показать|ещё|еще|expand|collapse|комментар/i.test(clean)) return null;
+  const view = clean.match(/^(\d[\d\s.,]*\s*(?:тыс\.?|млн|млрд)?\s*(?:просмотр(?:ов|а|ы)?|views?))$/i);
+  if (view) return { kind: 'view', value: view[1].replace(/\s+/g, ' ').trim() };
+  const relative = clean.match(/^(\d+\s+(?:секунд\w*|минут\w*|час\w*|дн\w*|недел\w*|месяц\w*|год\w*|лет)\s+назад|\d+\s+\w+\s+ago)$/i);
+  if (relative) return { kind: 'date', value: relative[1].replace(/\s+/g, ' ').trim() };
+  const calendar = clean.match(/^(\d{1,2}\s+(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\s+\d{4}(?:\s*г\.?)?)$/i);
+  if (calendar) return { kind: 'date', value: calendar[1].replace(/\s+/g, ' ').trim() };
+  return null;
+}
 function stabilizeWatchViews(): void {
   if (contentRoute(location.pathname) !== 'watch') {
     document.querySelector('.vkvk-watch-views')?.remove();
@@ -602,29 +614,31 @@ function stabilizeWatchViews(): void {
   let line = metadata.querySelector<HTMLElement>('.vkvk-watch-views');
   if (!line) line = element('div', 'vkvk-watch-views');
   if (line.parentElement !== box.parentElement || line.nextElementSibling !== box) box.before(line);
-  const matches: HTMLElement[] = [];
-  metadata.querySelectorAll<HTMLElement>('#view-count, .view-count, ytd-watch-info-text, span, yt-formatted-string, yt-attributed-string').forEach(node => {
-    if (node.closest('.vkvk-watch-views')) return;
-    const text = node.textContent?.replace(/\s+/g, ' ').trim() || '';
-    if (!text || text.length > 48) return;
-    const view = /просмотр|views/i.test(text);
-    const date = /назад|ago/i.test(text);
-    if (!view && !date) return;
-    const inDescription = Boolean(node.closest('#description, ytd-text-inline-expander'));
-    const inInfo = Boolean(node.closest('ytd-watch-info-text, #info, #info-container, #view-count, .view-count'));
-    if (!inDescription && !inInfo && node.id !== 'view-count' && !node.classList.contains('view-count')) return;
-    matches.push(node);
-  });
   const bits: string[] = [];
-  matches.filter(node => !matches.some(other => other !== node && node.contains(other))).forEach(node => {
+  let sawView = false;
+  let sawDate = false;
+  metadata.querySelectorAll<HTMLElement>('#view-count, .view-count, ytd-watch-info-text, span, yt-formatted-string, yt-attributed-string').forEach(node => {
+    if (sawView && sawDate) return;
+    if (node.closest('.vkvk-watch-views, button, .vkvk-desc-toggle, ytd-structured-description-content-renderer, ytd-video-description-infocards-section-renderer')) return;
     const text = node.textContent?.replace(/\s+/g, ' ').trim() || '';
+    const split = text.match(/^(.+?)\s*[·•]\s*(.+)$/);
+    const pieces = split
+      ? [watchMetricPiece(split[1]), watchMetricPiece(split[2])].filter((piece): piece is { kind: 'view' | 'date'; value: string } => Boolean(piece))
+      : [watchMetricPiece(text)].filter((piece): piece is { kind: 'view' | 'date'; value: string } => Boolean(piece));
+    if (!pieces.length) return;
     const raw = node.dataset.vkvkViewRaw && node.dataset.vkvkViewShown === text ? node.dataset.vkvkViewRaw : text;
-    const shown = isOwnerWatch() && /просмотр|views/i.test(text) ? boostMetricText(raw) : raw;
     node.dataset.vkvkViewRaw = raw;
-    node.dataset.vkvkViewShown = shown;
-    if (shown && !bits.includes(shown)) bits.push(shown);
+    node.dataset.vkvkViewShown = text;
+    pieces.forEach(piece => {
+      if (piece.kind === 'view' && sawView) return;
+      if (piece.kind === 'date' && sawDate) return;
+      const shown = isOwnerWatch() && piece.kind === 'view' ? boostMetricText(pieces.length === 1 ? raw : piece.value) : piece.value;
+      if (shown && !bits.includes(shown)) bits.push(shown);
+      if (piece.kind === 'view') sawView = true;
+      else sawDate = true;
+    });
+    if (!node.closest('ytd-watch-info-text')) node.classList.add('vkvk-live-views-source');
   });
-  matches.forEach(node => node.classList.add('vkvk-live-views-source'));
   const shown = bits.join(' · ');
   if (shown && line.textContent !== shown) line.textContent = shown;
 }
@@ -764,26 +778,76 @@ function decorateOwnerMode(): void {
 
 function decorateDescriptions(): void {
   document.querySelectorAll<HTMLElement>('ytd-watch-metadata #description').forEach(description => {
-    if (!description.querySelector('.vkvk-desc-collapse')) {
-      const collapse = element('button', 'vkvk-desc-collapse', 'Свернуть');
-      collapse.type = 'button';
-      collapse.addEventListener('click', event => {
+    const text = description.querySelector<HTMLElement>('yt-attributed-string, .yt-core-attributed-string, #plain-snippet-text, #attributed-snippet-text, #description-text')
+      || [...description.children].find((node): node is HTMLElement => node instanceof HTMLElement && !node.matches('button, .vkvk-desc-toggle, ytd-structured-description-content-renderer, ytd-video-description-infocards-section-renderer'));
+    text?.classList.add('vkvk-desc-text');
+    if (!description.querySelector('.vkvk-desc-toggle')) {
+      const toggle = element('button', 'vkvk-desc-toggle', 'Показать полностью');
+      toggle.type = 'button';
+      toggle.addEventListener('click', event => {
         event.preventDefault();
         event.stopPropagation();
-        description.classList.remove('vkvk-desc-open');
-        description.querySelector<HTMLElement>('#collapse, button[aria-label*="свернуть" i], button[aria-label*="меньше" i]')?.click();
+        const open = description.classList.toggle('vkvk-desc-open');
+        toggle.textContent = open ? 'Свернуть' : 'Показать полностью';
       });
-      description.prepend(collapse);
+      if (text) text.after(toggle);
+      else description.append(toggle);
     }
-    if (description.dataset.vkvkExpandListener) return;
-    description.dataset.vkvkExpandListener = '1';
-    description.addEventListener('click', event => {
-      const target = event.target as Element;
-      if (target.closest('a, .vkvk-desc-collapse')) return;
-      if (description.classList.contains('vkvk-desc-open')) return;
-      description.classList.add('vkvk-desc-open');
-      description.querySelector<HTMLElement>('#expand, tp-yt-paper-button#expand, button[aria-label*="ещё" i], button[aria-label*="more" i]')?.click();
+  });
+}
+function decorateOtherChannelAvatar(): void {
+  if (contentRoute(location.pathname) !== 'channel' || isOwnerChannelPath()) return;
+  const headline = document.querySelector<HTMLElement>('.ytPageHeaderViewModelHeadline');
+  const subscribe = document.querySelector<HTMLElement>('yt-subscribe-button-view-model, ytd-subscribe-button-renderer');
+  if (headline && subscribe && !headline.contains(subscribe)) headline.append(subscribe);
+}
+function decorateTrendingChannels(): void {
+  if (currentRoute() !== 'trending') return;
+  document.querySelectorAll<HTMLElement>('ytd-video-renderer, yt-lockup-view-model').forEach(card => {
+    if (card.closest('.vkvk-native-owner-promo')) return;
+    const text = card.textContent?.replace(/\s+/g, ' ') || '';
+    if (!/РЫЖАЯ\s*МОРДА/i.test(text) && !text.includes(ownerChannel.channelId)) return;
+    card.querySelectorAll<HTMLAnchorElement>('ytd-channel-name a, #channel-name a, .ytLockupMetadataViewModelAvatar').forEach(link => {
+      if (!/\/watch\?/.test(link.getAttribute('href') || '')) link.href = ownerChannel.url;
     });
+    const name = [...card.querySelectorAll<HTMLElement>('ytd-channel-name, #channel-name, .ytContentMetadataViewModelMetadataText, .yt-content-metadata-view-model__metadata-text')]
+      .find(node => /РЫЖАЯ\s*МОРДА/i.test(node.textContent || '') && !node.querySelector('a'));
+    if (!name || name.closest('a')) return;
+    const link = element('a', '', ownerChannel.name);
+    link.href = ownerChannel.url;
+    name.replaceChildren(link);
+  });
+}
+function decorateLiveShelf(): void {
+  const live = contentRoute(location.pathname) === 'live';
+  if (!live) {
+    document.querySelector('.vkvk-live-head')?.remove();
+    return;
+  }
+  const page = document.querySelector<HTMLElement>('ytd-browse #contents, ytd-two-column-browse-results-renderer');
+  if (!page) return;
+  let head = page.querySelector<HTMLElement>(':scope > .vkvk-live-head');
+  if (!head) {
+    head = element('div', 'vkvk-live-head');
+    head.append(element('h1', '', 'Стримы'));
+    const chips = element('div', 'vkvk-live-chips');
+    for (const [label, href] of [
+      ['Все', '/feed/live'],
+      ['Видеоигры', '/gaming'],
+      ['Музыка', '/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ'],
+      ['Спорт', '/results?search_query=спорт+live'],
+    ] as const) {
+      const link = element('a', location.pathname === href ? 'active' : '', label);
+      link.href = href;
+      chips.append(link);
+    }
+    head.append(chips);
+    page.prepend(head);
+  }
+  page.querySelectorAll<HTMLElement>('ytd-thumbnail, .ytThumbnailViewModelHost').forEach(thumb => {
+    if (thumb.querySelector('.vkvk-live-label')) return;
+    thumb.classList.add('vkvk-live-thumb');
+    thumb.append(element('span', 'vkvk-live-label', 'LIVE'));
   });
 }
 
@@ -872,7 +936,8 @@ function renderOwnerTrendCard(): void {
   const item = ownerVideos.find(video => video.href === trendingPick);
   const contents = document.querySelector<HTMLElement>('ytd-browse #contents,ytd-section-list-renderer #contents');
   if (!item || !contents) return;
-  if (existing?.dataset.href === item.href && existing.parentElement === contents) return;
+  const shownAvatar = existing?.querySelector<HTMLImageElement>('.vkvk-card-avatar')?.getAttribute('src') || '';
+  if (existing?.dataset.href === item.href && existing.parentElement === contents && shownAvatar === (item.avatar || '')) return;
   existing?.remove();
   const promo = element('section', 'vkvk-native-owner-promo');
   promo.dataset.href = item.href;
@@ -1088,19 +1153,27 @@ function vkVideoCard(item: VideoItem): HTMLElement {
   }
   if (item.duration) media.append(element('span', 'vkvk-duration', item.duration));
   const body = element('div', 'vkvk-catalog-body');
-  if (item.avatar) {
-    const avatar = element('img', 'vkvk-card-avatar');
+  const channelHref = item.channel === ownerChannel.name ? ownerChannel.url : '';
+  const avatar = item.avatar ? element('img', 'vkvk-card-avatar') : item.channel ? element('span', 'vkvk-card-avatar vkvk-card-avatar-fallback') : null;
+  if (avatar instanceof HTMLImageElement) {
     avatar.src = item.avatar;
     avatar.alt = '';
-    body.append(avatar);
-  } else if (item.channel) {
-    body.append(element('span', 'vkvk-card-avatar vkvk-card-avatar-fallback'));
   }
+  if (avatar && channelHref) {
+    const avatarLink = element('a', 'vkvk-card-avatar-link');
+    avatarLink.href = channelHref;
+    avatarLink.append(avatar);
+    body.append(avatarLink);
+  } else if (avatar) body.append(avatar);
   const copy = element('div', 'vkvk-card-copy');
   const title = element('a', 'vkvk-card-title', item.title);
   title.href = item.href;
   copy.append(title);
-  if (item.channel) copy.append(element('div', 'vkvk-card-channel', item.channel));
+  if (item.channel && channelHref) {
+    const channel = element('a', 'vkvk-card-channel', item.channel);
+    channel.href = channelHref;
+    copy.append(channel);
+  } else if (item.channel) copy.append(element('div', 'vkvk-card-channel', item.channel));
   if (item.meta) copy.append(element('div', 'vkvk-card-meta', item.meta));
   body.append(copy, cardMenu(item));
   card.append(media, body);
@@ -1485,6 +1558,9 @@ function refresh(): void {
     decorateWatchPlayer();
     decorateAdSkip();
     decorateDescriptions();
+    decorateOtherChannelAvatar();
+    decorateLiveShelf();
+    decorateTrendingChannels();
     decorateOwnerMode();
     decorateChannelChrome();
     showRecsysToast();
