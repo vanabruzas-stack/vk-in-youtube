@@ -1,9 +1,10 @@
 import { build } from 'esbuild';
-import { mkdir, copyFile, writeFile } from 'node:fs/promises';
+import { mkdir, copyFile, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 await import('./icons.mjs');
 const out = resolve('dist');
+const { version } = JSON.parse(await readFile(resolve('package.json'), 'utf8'));
 await mkdir(out, { recursive: true });
 await build({
   entryPoints: {
@@ -39,7 +40,7 @@ const manifest = {
   manifest_version: 3,
   name: 'YouTube в интерфейсе VK Видео',
   description: 'Оформление YouTube и YouTube Studio по реальному интерфейсу VK Видео с сохранением функций YouTube.',
-  version: '1.0.8',
+  version,
   icons: { 16: 'icon16.png', 32: 'icon32.png', 48: 'icon48.png', 128: 'icon128.png' },
   action: {
     default_popup: 'popup.html',

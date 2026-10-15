@@ -7,6 +7,10 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
   const browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    await page.route('https://yt3.ggpht.com/**', route => route.fulfill({
+      contentType: 'image/gif',
+      body: Buffer.from('R0lGODlhAQABAIAAAACAgP///ywAAAAAAQABAAACAUwAOw==', 'base64'),
+    }));
     await page.route('https://www.youtube.com/**', route => route.fulfill({
       contentType: 'text/html; charset=utf-8',
       body: `<!doctype html><html><body><ytd-app><ytd-masthead><div id="avatar-btn"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAACAgP///ywAAAAAAQABAAACAUwAOw=="></div></ytd-masthead><ytd-guide-renderer><ytd-guide-entry-renderer><a id="endpoint" href="/@SergeyOrlov" title="Сергей Орлов"></a></ytd-guide-entry-renderer></ytd-guide-renderer><ytd-page-manager>
@@ -17,7 +21,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
           <div id="metadata-line">Автор</div><div id="metadata-line">136 просмотров</div>
         </ytd-rich-grid-media>
         <ytd-rich-section-renderer><ytd-rich-shelf-renderer><h2 id="title">Shorts</h2></ytd-rich-shelf-renderer></ytd-rich-section-renderer></div></ytd-rich-grid-renderer></ytd-browse>
-      </ytd-page-manager></ytd-app></body></html>`,
+      </ytd-page-manager></ytd-app><script type="application/json">{"guideEntryRenderer":{"navigationEndpoint":{"browseEndpoint":{"canonicalBaseUrl":"/@SergeyOrlov"}},"title":{"simpleText":"Сергей Орлов"},"thumbnail":{"thumbnails":[{"url":"https://yt3.ggpht.com/test-avatar"}]}}}</script></body></html>`,
     }));
     await page.goto('https://www.youtube.com/');
     await page.evaluate(() => {
@@ -37,7 +41,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     await page.locator('#vkvk-site-shell').waitFor();
     await page.waitForFunction(() => document.querySelector('.vkvk-subscription')?.getAttribute('href') === '/@SergeyOrlov');
     assert.equal(await page.locator('.vkvk-subscription span').innerText(), 'Сергей Орлов');
-    assert.equal(await page.locator('.vkvk-sub-fallback').innerText(), 'С');
+    assert.equal(await page.locator('.vkvk-subscription img').getAttribute('src'), 'https://yt3.ggpht.com/test-avatar');
     assert.equal(await page.locator('.vkvk-nav[data-route="home"]').getAttribute('href'), '/');
     assert.equal(await page.locator('.vkvk-nav[data-route="live"]').getAttribute('href'), '/channel/UC4R8DWoMoI7CAwX8_LjQHig');
     assert.match(await page.locator('.vkvk-nav[data-route="live"]').innerHTML(), /10\.52 9\.823/);
@@ -138,7 +142,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
         <ytd-watch-metadata>
           <div id="owner"><a href="/@РЫЖАЯМОРДА">РЫЖАЯ МОРДА</a></div>
           <div id="owner-sub-count">4,12 тыс. подписчиков</div>
-          <div id="view-count">62 просмотров</div>
+          <div id="view-count">62 просмотров</div><ytd-watch-info-text><span id="original-views">62 просмотра</span></ytd-watch-info-text>
           <div id="description"><ytd-text-inline-expander>
             <yt-attributed-string id="view-line">501 037 просмотров 23 авг. 2026 г.</yt-attributed-string>
             <yt-attributed-string id="body-text">Сергей Орлов приглашает гостей для коллективной доработки своих черновиков и неиспользованных шуток.</yt-attributed-string>
@@ -164,7 +168,8 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     }), 'related heading stays under the playlist, not over the player');
     assert.equal(await page.locator('yt-related-chip-cloud-renderer').evaluate(node => getComputedStyle(node).display), 'flex');
     assert.match(await page.locator('#owner-sub-count').innerText(), /4,12 млн/);
-    assert.match(await page.locator('.vkvk-watch-views').innerText(), /^62 тыс\. просмотров$/);
+    assert.match(await page.locator('.vkvk-watch-views').innerText(), /^62 тыс\. просмотров · 23 авг\. 2026 г\.$/);
+    assert.equal(await page.locator('#original-views').evaluate(node => getComputedStyle(node).width), '1px');
     assert.ok(await page.evaluate(() => {
       const line = document.querySelector('.vkvk-watch-views');
       const description = document.querySelector('#description');
@@ -215,6 +220,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
       const player = document.createElement('div');
       player.id = 'movie_player';
       player.className = 'html5-video-player ytp-fullscreen';
+      player.innerHTML = '<div class="html5-video-container"><video class="html5-main-video" style="position:absolute;inset:0;width:100%;height:100%"></video></div>';
       document.querySelector('ytd-watch-flexy')?.append(player);
       document.dispatchEvent(new Event('yt-navigate-finish'));
     });
@@ -222,6 +228,31 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     assert.equal(await page.locator('#vkvk-site-shell').evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.locator('#movie_player').evaluate(node => getComputedStyle(node).position), 'fixed');
     assert.equal(await page.locator('#movie_player').evaluate(node => getComputedStyle(node).zIndex), '2147483646');
+    assert.equal(await page.locator('ytd-watch-metadata').evaluate(node => getComputedStyle(node).display), 'none');
+    assert.equal(await page.locator('ytd-watch-flexy #secondary').evaluate(node => getComputedStyle(node).display), 'none');
+    assert.equal(await page.evaluate(() => document.querySelector('#movie_player').contains(document.elementFromPoint(innerWidth / 2, innerHeight / 2))), true);
+    assert.deepEqual(await page.locator('#movie_player video').evaluate(node => {
+      const style = getComputedStyle(node);
+      const rect = node.getBoundingClientRect();
+      return [style.display, style.visibility, style.opacity, style.position, Math.round(rect.width), Math.round(rect.height)];
+    }), ['block', 'visible', '1', 'absolute', 1440, 900]);
+    await page.locator('#movie_player').evaluate(node => node.classList.remove('ytp-fullscreen'));
+    await page.waitForFunction(() => !document.documentElement.classList.contains('vkvk-fullscreen'));
+    assert.notEqual(await page.locator('ytd-watch-metadata').evaluate(node => getComputedStyle(node).display), 'none');
+    await page.evaluate(() => {
+      const button = document.createElement('button');
+      button.id = 'enter-real-fullscreen';
+      button.textContent = 'На весь экран';
+      button.style.cssText = 'position:fixed;top:0;left:0;z-index:2147483647';
+      button.addEventListener('click', () => document.querySelector('#movie_player').requestFullscreen());
+      document.body.append(button);
+    });
+    await page.locator('#enter-real-fullscreen').click();
+    await page.waitForFunction(() => document.fullscreenElement?.id === 'movie_player');
+    assert.equal(await page.locator('ytd-watch-metadata').evaluate(node => getComputedStyle(node).display), 'none');
+    assert.equal(await page.evaluate(() => document.querySelector('#movie_player').contains(document.elementFromPoint(innerWidth / 2, innerHeight / 2))), true);
+    await page.evaluate(() => document.exitFullscreen());
+    await page.waitForFunction(() => !document.fullscreenElement && !document.documentElement.classList.contains('vkvk-fullscreen'));
     await page.evaluate(() => {
       history.pushState({}, '', '/shorts/12345678901');
       document.querySelector('ytd-page-manager').innerHTML = `
