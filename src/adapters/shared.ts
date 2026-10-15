@@ -48,7 +48,7 @@ export function studioRoute(path: string): string {
   if (/\/video\/[^/]+\/analytics/.test(path)) return 'video-analytics';
   if (path.includes('/videos')) return 'content';
   if (path.includes('/analytics')) return 'analytics';
-  if (path.includes('/comments')) return 'comments';
+  if (path.includes('/comments') || path.includes('/community')) return 'comments';
   if (path.includes('/monetization')) return 'monetization';
   if (path.includes('/customization')) return 'settings';
   if (path.includes('/settings')) return 'settings';

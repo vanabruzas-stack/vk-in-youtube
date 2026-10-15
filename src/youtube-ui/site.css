@@ -435,31 +435,34 @@ html.vkvk-site ytd-watch-metadata :is(.yt-spec-button-shape-next--tonal,.ytSpecB
 html.vkvk-site :is(ytd-watch-metadata,ytd-watch-flexy) dislike-button-view-model,
 html.vkvk-site ytd-watch-flexy button[aria-label*='Не нравится' i],
 html.vkvk-site ytd-watch-flexy button[aria-label*='Dislike' i]{display:none!important}
-html.vkvk-site ytd-watch-metadata like-button-view-model{min-width:0!important;width:fit-content!important;max-width:none!important}
+html.vkvk-site ytd-watch-metadata like-button-view-model{min-width:0!important;width:fit-content!important;max-width:none!important;margin-top:10px!important}
 html.vkvk-site ytd-watch-metadata :is(#actions, #top-level-buttons-computed, ytd-menu-renderer){display:flex!important;align-items:center!important;gap:8px!important}
 html.vkvk-site ytd-watch-metadata :is(#actions button, ytd-menu-renderer button){height:36px!important;border-radius:8px!important;background:rgba(255,255,255,.08)!important}
-html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model{position:relative!important;display:inline-flex!important;width:auto!important;min-width:92px!important;height:36px!important;overflow:hidden!important;vertical-align:middle!important;border-radius:8px!important}
-html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model button :is(svg,yt-icon,.yt-spec-button-shape-next__icon){opacity:0!important}
+html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model{position:relative!important;display:inline-flex!important;width:fit-content!important;min-width:0!important;height:32px!important;overflow:visible!important;vertical-align:middle!important;border-radius:8px!important}
+html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model button{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;color:transparent!important;background:transparent!important}
+html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model button :is(svg,yt-icon,.yt-spec-button-shape-next__icon,.yt-spec-button-shape-next__button-text-content,span){opacity:0!important;color:transparent!important}
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model button::before{content:''!important;background:transparent!important}
-html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model::after{content:var(--vkvk-likes);position:absolute;inset:0;z-index:2;box-sizing:border-box;padding:0 10px 0 26px;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;font:500 13px/36px VKLocal,Roboto,Arial,sans-serif;pointer-events:none;white-space:nowrap}
-html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model::before{content:"";position:absolute;z-index:3;left:8px;top:10px;width:16px;height:16px;background:#909499;pointer-events:none;-webkit-mask:var(--vkvk-heart) center/contain no-repeat;mask:var(--vkvk-heart) center/contain no-repeat}
+html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model::after{content:var(--vkvk-likes);position:relative!important;inset:auto!important;z-index:2;width:max-content;box-sizing:border-box;padding:0 10px 0 26px;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;font:500 13px/32px VKLocal,Roboto,Arial,sans-serif;pointer-events:none;white-space:nowrap}
+html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model::before{content:"";position:absolute;z-index:3;left:8px;top:8px;width:16px;height:16px;background:#909499;pointer-events:none;-webkit-mask:var(--vkvk-heart) center/contain no-repeat;mask:var(--vkvk-heart) center/contain no-repeat}
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model:has(button[aria-pressed='true'])::before,
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model[data-vkvk-liked='true']::before{background:#fff!important;-webkit-mask:var(--vkvk-heart-on) center/contain no-repeat;mask:var(--vkvk-heart-on) center/contain no-repeat}
 html.vkvk-site ytd-watch-metadata like-button-view-model button{
   width:fit-content!important;
   min-width:0!important;
   max-width:none!important;
-  padding:0 10px 0 8px!important;
+  height:32px!important;
+  padding:0 8px 0 6px!important;
+  gap:2px!important;
   overflow:visible!important
 }
 html.vkvk-site ytd-watch-metadata like-button-view-model button svg{display:none!important}
 html.vkvk-site ytd-watch-metadata like-button-view-model button::before{
   content:'';
   display:block;
-  flex:0 0 20px;
-  width:20px;
-  height:20px;
-  margin-right:7px;
+  flex:0 0 16px;
+  width:16px;
+  height:16px;
+  margin-right:2px;
   background:#909499;
   -webkit-mask:var(--vkvk-heart) center/contain no-repeat;
   mask:var(--vkvk-heart) center/contain no-repeat
@@ -471,11 +474,13 @@ html.vkvk-site ytd-watch-metadata like-button-view-model[data-vkvk-liked='true']
   mask:var(--vkvk-heart-on) center/contain no-repeat
 }
 html.vkvk-site .vkvk-watch-views{
-  margin:0 0 8px;
+  display:block;
+  margin:12px 0 8px;
   min-height:18px;
   color:var(--vk-muted);
   font:400 13px/18px VKLocal,Roboto,Arial,sans-serif
 }
+html.vkvk-site ytd-watch-metadata :is(#description,ytd-text-inline-expander) .vkvk-watch-views{display:none!important}
 html.vkvk-site .vkvk-live-views-source{
   position:absolute!important;
   width:1px!important;
@@ -500,10 +505,12 @@ html.vkvk-site ytd-search ytd-video-renderer :is(ytd-thumbnail,#thumbnail){width
 html.vkvk-site ytd-browse[page-subtype='history'] ytd-video-renderer :is(ytd-thumbnail,#thumbnail){width:100%!important;min-width:0!important;max-width:none!important;aspect-ratio:16/9!important}
 html.vkvk-site ytd-search ytd-video-renderer #dismissible{gap:16px}
 html.vkvk-site :is(ytd-watch-metadata #description,ytd-text-inline-expander){
+  display:block!important;
   background:var(--vk-panel)!important;
   border:1px solid #303132!important;
   border-radius:10px!important
 }
+html.vkvk-site ytd-text-inline-expander #description{background:transparent!important;border:0!important;border-radius:0!important}
 html.vkvk-site :is(ytd-watch-metadata,ytd-comments) :is(.yt-spec-button-shape-next--tonal,.ytSpecButtonShapeNextTonal){
   border:1px solid #3a3b3c!important
 }
@@ -619,15 +626,13 @@ html.vkvk-site ytd-popup-container{--ytd-masthead-height:var(--vk-header)}
 html.vkvk-site ytd-tabbed-page-header #page-header-container,html.vkvk-site ytd-tabbed-page-header #tabs-container{background:var(--vk-bg)!important}
 html.vkvk-site .ytThumbnailViewModelHost,html.vkvk-site .ytThumbnailViewModelImage{border-radius:10px!important;overflow:hidden!important}
 html.vkvk-site .ytBadgeShapeHost{border-radius:4px!important;background:rgba(0,0,0,.72)!important;color:#fff!important;font-size:12px!important;font-weight:500!important;line-height:16px!important;padding:2px 5px!important;height:auto!important}
+html.vkvk-site :is(#video-title,ytd-watch-metadata #title,ytd-rich-shelf-renderer #title,ytd-rich-section-renderer #title,h2,h3) :is(.ytBadgeShapeHost,ytd-badge-supported-renderer){display:none!important}
 html.vkvk-site :is(
-  ytd-badge-supported-renderer,
   ytd-channel-name .ytBadgeShapeHost,
   #channel-name .ytBadgeShapeHost,
   #owner .ytBadgeShapeHost,
   .ytPageHeaderViewModelHeadline .ytBadgeShapeHost,
-  .ytPageHeaderViewModelTitle .ytBadgeShapeHost,
-  .ytContentMetadataViewModelMetadataRow .ytBadgeShapeHost,
-  .yt-content-metadata-view-model__metadata-row .ytBadgeShapeHost
+  .ytPageHeaderViewModelTitle .ytBadgeShapeHost
 ){
   position:relative!important;
   display:inline-flex!important;
@@ -646,20 +651,18 @@ html.vkvk-site :is(
   color:#529ef4!important
 }
 html.vkvk-site :is(
-  ytd-badge-supported-renderer,
   ytd-channel-name .ytBadgeShapeHost,
   #channel-name .ytBadgeShapeHost,
   #owner .ytBadgeShapeHost,
   .ytPageHeaderViewModelHeadline .ytBadgeShapeHost,
-  .ytContentMetadataViewModelMetadataRow .ytBadgeShapeHost
+  .ytPageHeaderViewModelTitle .ytBadgeShapeHost
 ) :is(svg,yt-icon,.yt-icon-shape){opacity:0!important}
 html.vkvk-site :is(
-  ytd-badge-supported-renderer,
   ytd-channel-name .ytBadgeShapeHost,
   #channel-name .ytBadgeShapeHost,
   #owner .ytBadgeShapeHost,
   .ytPageHeaderViewModelHeadline .ytBadgeShapeHost,
-  .ytContentMetadataViewModelMetadataRow .ytBadgeShapeHost
+  .ytPageHeaderViewModelTitle .ytBadgeShapeHost
 )::after{
   content:"";
   position:absolute;
@@ -803,16 +806,18 @@ html.vkvk-owner-video [data-vkvk-fun-output]{text-decoration:none!important}
 html.vkvk-site:is(.vkvk-owner-channel,.vkvk-owner-video) :is(ytd-watch-metadata,ytd-watch-metadata a,#description,#description a,ytd-text-inline-expander,ytd-text-inline-expander a,yt-formatted-string,yt-formatted-string a,yt-attributed-string,.vkvk-card-title,#info,#info span,#view-count,ytd-watch-info-text){text-decoration:none!important;border-bottom:0!important;-webkit-text-decoration:none!important}
 html.vkvk-owner-channel :is(yt-page-header-renderer,ytd-tabbed-page-header,#page-header,yt-page-header-view-model){position:relative}
 html.vkvk-owner-channel .ytPageHeaderViewModelHeadline{position:relative}
-html.vkvk-owner-channel .vkvk-owner-controls{
-  position:absolute!important;
-  top:196px!important;
-  right:16px!important;
+html.vkvk-owner-channel .ytPageHeaderViewModelHeadline .vkvk-owner-controls{
+  position:static!important;
+  top:auto!important;
+  right:auto!important;
   z-index:4!important;
-  margin:0!important;
+  flex:none!important;
+  align-self:flex-start!important;
+  margin:26px 0 0 auto!important;
   padding:0!important;
   justify-content:flex-end!important
 }
-html.vkvk-owner-channel .vkvk-sort-chips{display:flex;gap:8px;padding:8px 16px 0}
+html.vkvk-owner-channel .vkvk-sort-chips{display:flex!important;justify-content:flex-start!important;gap:8px;width:fit-content!important;margin:10px 16px 0!important;padding:0!important}
 html.vkvk-owner-channel .vkvk-sort-chips a{height:32px;padding:0 12px;border-radius:8px;background:var(--vk-raised);color:var(--vk-text);font-size:14px;line-height:32px;text-decoration:none!important}
 html.vkvk-owner-channel .vkvk-sort-chips a.active{background:#e1e3e6;color:#19191a}
 html.vkvk-owner-channel ytd-feed-filter-chip-bar-renderer{display:none!important}
@@ -843,8 +848,8 @@ html.vkvk-site[data-vkvk-route='channel'] .ytPageHeaderViewModelHeadline{
   display:flex!important;
   flex-direction:row!important;
   align-items:flex-start!important;
-  gap:10px!important;
-  margin:-6px 8px 0 0!important;
+  gap:28px!important;
+  margin:18px 16px 8px 16px!important;
   padding:0!important
 }
 html.vkvk-site[data-vkvk-route='channel'] .ytPageHeaderViewModelHeadlineInfo{
@@ -853,7 +858,7 @@ html.vkvk-site[data-vkvk-route='channel'] .ytPageHeaderViewModelHeadlineInfo{
   flex:1 1 auto!important;
   min-width:0!important;
   margin:0!important;
-  padding:22px 400px 8px 0!important;
+  padding:26px 12px 0 0!important;
   text-align:left!important
 }
 html.vkvk-site[data-vkvk-route='channel'] .ytPageHeaderViewModelHeadline :is(yt-decorated-avatar-view-model,yt-avatar-shape,#avatar){
@@ -870,12 +875,12 @@ html.vkvk-site[data-vkvk-route='channel'] .ytPageHeaderViewModelHeadline :is(yt-
 }
 html.vkvk-site[data-vkvk-route='channel']:not(.vkvk-owner-channel) .ytPageHeaderViewModelHeadline{
   align-items:flex-start!important;
-  gap:10px!important;
-  margin:8px 8px 0 0!important
+  gap:28px!important;
+  margin:18px 16px 8px 16px!important
 }
 html.vkvk-site[data-vkvk-route='channel']:not(.vkvk-owner-channel) .ytPageHeaderViewModelHeadlineInfo{
   margin-left:0!important;
-  padding:30px 16px 8px 0!important
+  padding:26px 12px 0 0!important
 }
 html.vkvk-site[data-vkvk-route='channel']:not(.vkvk-owner-channel) .ytPageHeaderViewModelHeadline :is(yt-decorated-avatar-view-model,yt-avatar-shape,#avatar){
   left:0!important;

@@ -80,7 +80,8 @@ test('Studio shell keeps native navigation/upload and shows period statistics', 
       document.dispatchEvent(new Event('yt-navigate-finish'));
     });
     await page.waitForFunction(() => document.documentElement.dataset.vkvkRoute === 'comments');
-    assert.equal(await page.locator('ytcp-comment').evaluate(node => getComputedStyle(node).display), 'grid');
+    assert.notEqual(await page.locator('ytcp-comment').evaluate(node => getComputedStyle(node).display), 'grid');
+    assert.equal(await page.locator('ytcp-comment').evaluate(node => getComputedStyle(node).maxWidth), 'none');
     assert.equal(await page.locator('ytcp-comment #body').evaluate(node => getComputedStyle(node).textAlign), 'left');
     assert.equal(await page.locator('#main-content > *').evaluate(node => getComputedStyle(node).marginLeft), '0px');
     await page.evaluate(() => {

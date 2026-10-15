@@ -451,21 +451,11 @@ function alignStudioSurface(): void {
     card.style.setProperty('overflow', 'hidden', 'important');
     card.style.setProperty('position', 'relative', 'important');
   });
-  document.querySelectorAll<HTMLElement>('ytcp-comment-thread').forEach(thread => {
-    thread.style.setProperty('display', 'flex', 'important');
-    thread.style.setProperty('flex-direction', 'row', 'important');
-    thread.style.setProperty('align-items', 'flex-start', 'important');
-    thread.style.setProperty('justify-content', 'flex-start', 'important');
-    thread.style.setProperty('gap', '16px', 'important');
-    thread.style.setProperty('width', 'min(880px, 100%)', 'important');
-    thread.style.setProperty('max-width', '880px', 'important');
-    thread.querySelectorAll<HTMLElement>('#video-thumbnail, .video-thumbnail, ytcp-video-thumbnail').forEach(thumb => {
-      thumb.style.setProperty('position', 'static', 'important');
-      thumb.style.setProperty('left', 'auto', 'important');
-      thumb.style.setProperty('order', '2', 'important');
-      thumb.style.setProperty('flex', '0 0 168px', 'important');
-      thumb.style.setProperty('width', '168px', 'important');
-      thumb.style.setProperty('margin', '0', 'important');
+  const layoutProps = ['display', 'flex-direction', 'align-items', 'justify-content', 'justify-items', 'gap', 'width', 'max-width', 'grid-template-columns', 'position', 'left', 'order', 'flex', 'margin', 'grid-column', 'grid-row'];
+  document.querySelectorAll<HTMLElement>('ytcp-comment-thread, ytcp-comment').forEach(node => {
+    layoutProps.forEach(prop => node.style.removeProperty(prop));
+    node.querySelectorAll<HTMLElement>('#author-thumbnail, #body, #main, #comment-content, .comment-content, #video-thumbnail, .video-thumbnail, ytcp-video-thumbnail').forEach(child => {
+      layoutProps.forEach(prop => child.style.removeProperty(prop));
     });
   });
 }

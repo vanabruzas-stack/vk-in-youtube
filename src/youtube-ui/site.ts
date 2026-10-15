@@ -595,23 +595,38 @@ function stabilizeWatchViews(): void {
     document.querySelector('.vkvk-watch-views')?.remove();
     return;
   }
-  const description = document.querySelector('ytd-watch-metadata #description');
-  const source = document.querySelector<HTMLElement>('#view-count, .view-count, ytd-watch-info-text #info');
-  if (!description || !source) return;
-  const previous = description.previousElementSibling;
-  let line = previous instanceof HTMLElement && previous.classList.contains('vkvk-watch-views') ? previous : null;
-  if (!line) {
-    line = element('div', 'vkvk-watch-views');
-    description.before(line);
-  }
-  const live = source.textContent?.replace(/\s+/g, ' ').trim() || '';
-  if (!live) return;
-  const raw = source.dataset.vkvkViewShown === live && source.dataset.vkvkViewRaw ? source.dataset.vkvkViewRaw : live;
-  const shown = isOwnerWatch() ? boostMetricText(raw) : raw;
-  source.dataset.vkvkViewRaw = raw;
-  source.dataset.vkvkViewShown = shown;
-  if (line.textContent !== shown) line.textContent = shown;
-  source.classList.add('vkvk-live-views-source');
+  const metadata = document.querySelector('ytd-watch-metadata');
+  const description = metadata?.querySelector<HTMLElement>('#description, ytd-text-inline-expander');
+  if (!metadata || !description) return;
+  const box = description.closest('ytd-text-inline-expander') || description;
+  let line = metadata.querySelector<HTMLElement>('.vkvk-watch-views');
+  if (!line) line = element('div', 'vkvk-watch-views');
+  if (line.parentElement !== box.parentElement || line.nextElementSibling !== box) box.before(line);
+  const matches: HTMLElement[] = [];
+  metadata.querySelectorAll<HTMLElement>('#view-count, .view-count, ytd-watch-info-text, span, yt-formatted-string, yt-attributed-string').forEach(node => {
+    if (node.closest('.vkvk-watch-views')) return;
+    const text = node.textContent?.replace(/\s+/g, ' ').trim() || '';
+    if (!text || text.length > 48) return;
+    const view = /просмотр|views/i.test(text);
+    const date = /назад|ago/i.test(text);
+    if (!view && !date) return;
+    const inDescription = Boolean(node.closest('#description, ytd-text-inline-expander'));
+    const inInfo = Boolean(node.closest('ytd-watch-info-text, #info, #info-container, #view-count, .view-count'));
+    if (!inDescription && !inInfo && node.id !== 'view-count' && !node.classList.contains('view-count')) return;
+    matches.push(node);
+  });
+  const bits: string[] = [];
+  matches.filter(node => !matches.some(other => other !== node && node.contains(other))).forEach(node => {
+    const text = node.textContent?.replace(/\s+/g, ' ').trim() || '';
+    const raw = node.dataset.vkvkViewRaw && node.dataset.vkvkViewShown === text ? node.dataset.vkvkViewRaw : text;
+    const shown = isOwnerWatch() && /просмотр|views/i.test(text) ? boostMetricText(raw) : raw;
+    node.dataset.vkvkViewRaw = raw;
+    node.dataset.vkvkViewShown = shown;
+    if (shown && !bits.includes(shown)) bits.push(shown);
+  });
+  matches.forEach(node => node.classList.add('vkvk-live-views-source'));
+  const shown = bits.join(' · ');
+  if (shown && line.textContent !== shown) line.textContent = shown;
 }
 
 function syncLikeHearts(): void {
@@ -626,18 +641,19 @@ function syncLikeHearts(): void {
     }, true);
   }
   if (contentRoute(location.pathname) !== 'watch') return;
-  const heartStyle = `button :is(svg,yt-icon,.yt-spec-button-shape-next__icon){opacity:0!important}button::before{content:""!important;display:inline-block!important;width:20px!important;height:20px!important;margin-right:6px!important;background:#909499!important;vertical-align:-4px!important;-webkit-mask:var(--vkvk-heart) center/contain no-repeat!important;mask:var(--vkvk-heart) center/contain no-repeat!important}button[aria-pressed="true"]::before{background:#fff!important;-webkit-mask:var(--vkvk-heart-on) center/contain no-repeat!important;mask:var(--vkvk-heart-on) center/contain no-repeat!important}:is(yt-animated-rolling-number,.ytAnimatedRollingNumberNumber){animation:none!important;transition:none!important}`;
+  const heartStyle = `button{width:fit-content!important;min-width:0!important;height:32px!important;padding:0 8px 0 6px!important;gap:2px!important}button :is(svg,yt-icon,.yt-spec-button-shape-next__icon){opacity:0!important}button::before{content:""!important;display:inline-block!important;width:16px!important;height:16px!important;margin-right:2px!important;background:#909499!important;vertical-align:-3px!important;-webkit-mask:var(--vkvk-heart) center/contain no-repeat!important;mask:var(--vkvk-heart) center/contain no-repeat!important}button[aria-pressed="true"]::before{background:#fff!important;-webkit-mask:var(--vkvk-heart-on) center/contain no-repeat!important;mask:var(--vkvk-heart-on) center/contain no-repeat!important}:is(yt-animated-rolling-number,.ytAnimatedRollingNumberNumber){animation:none!important;transition:none!important}`;
   document.querySelectorAll<HTMLElement>('like-button-view-model').forEach(host => {
     const root = host.shadowRoot;
     const button = root?.querySelector('button') || host.querySelector('button');
     const pressed = button?.getAttribute('aria-pressed') === 'true';
     host.dataset.vkvkLiked = pressed ? 'true' : 'false';
-    if (root && !root.querySelector('style[data-vkvk-like]')) {
+    const likeStyle = root?.querySelector<HTMLStyleElement>('style[data-vkvk-like]');
+    if (root && !likeStyle) {
       const style = document.createElement('style');
       style.dataset.vkvkLike = '1';
       style.textContent = heartStyle;
       root.append(style);
-    }
+    } else if (likeStyle && likeStyle.textContent !== heartStyle) likeStyle.textContent = heartStyle;
     if (isOwnerWatch() && !host.dataset.vkvkLikesPinned) {
       host.dataset.vkvkLikesPinned = '1';
       host.style.setProperty('--vkvk-likes', JSON.stringify(deterministicFunLikes()));
@@ -701,8 +717,12 @@ function decorateOwnerMode(): void {
         link.href = href;
         controls.append(link);
       }
-      host.append(controls);
+      const headline = host.querySelector<HTMLElement>('.ytPageHeaderViewModelHeadline') || host;
+      headline.append(controls);
     }
+    const placed = host?.querySelector<HTMLElement>('.vkvk-owner-controls');
+    const headline = host?.querySelector<HTMLElement>('.ytPageHeaderViewModelHeadline');
+    if (placed && headline && placed.parentElement !== headline) headline.append(placed);
     const videosTab = /\/videos\/?$/.test(location.pathname);
     if (videosTab && !document.querySelector('.vkvk-sort-chips')) {
       const chips = element('div', 'vkvk-sort-chips');
@@ -712,9 +732,7 @@ function decorateOwnerMode(): void {
         link.href = `${ownerChannel.url}/videos?view=0&sort=${sort}&shelf_id=0`;
         chips.append(link);
       }
-      const tabs = document.querySelector('yt-tab-group-shape,#tabs-container,tp-yt-paper-tabs');
-      const anchor = tabs?.parentElement || host || document.querySelector('ytd-browse');
-      anchor?.append(chips);
+      if (host) host.insertAdjacentElement('afterend', chips);
     }
   }
   if (!ownerChannelPage && !ownerWatch) return;

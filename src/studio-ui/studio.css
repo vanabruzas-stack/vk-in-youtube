@@ -151,27 +151,9 @@ html.vkvk-studio[data-vkvk-route='overview'] :is(ytcd-card,ytcp-dashboard-card,y
 html.vkvk-studio[data-vkvk-route='overview'] [data-vkvk-hide-comments]{display:none!important}
 html.vkvk-studio:is([data-vkvk-route='comments'],:has(ytcp-comments),:has(ytcp-comment-section)) :is(#main-content,#content)>*,
 html.vkvk-studio:is([data-vkvk-route='comments'],:has(ytcp-comments),:has(ytcp-comment-section)) :is(ytcp-entity-page,ytcp-comments,ytcp-comments-section,ytcp-comment-section,.page-container){
-  max-width:960px!important;width:100%!important;margin-left:0!important;margin-right:auto!important;text-align:left!important
+  max-width:none!important;width:100%!important;margin-left:0!important;margin-right:0!important;text-align:left!important
 }
-html.vkvk-studio ytcp-comment-thread{
-  display:flex!important;flex-direction:row!important;align-items:flex-start!important;gap:16px!important;
-  width:min(880px,100%)!important;max-width:880px!important;margin:0!important;padding:12px 0!important;box-sizing:border-box!important;text-align:left!important
-}
-html.vkvk-studio ytcp-comment{
-  display:grid!important;grid-template-columns:40px minmax(0,1fr)!important;align-items:start!important;justify-items:start!important;
-  width:100%!important;max-width:none!important;min-height:0!important;padding:8px 0!important;box-sizing:border-box!important;text-align:left!important
-}
-html.vkvk-studio ytcp-comment :is(#main,#body,#comment-content,.comment-content){
-  grid-column:2!important;width:100%!important;max-width:none!important;margin:0!important;text-align:left!important;
-  display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:flex-start!important
-}
-html.vkvk-studio ytcp-comment :is(#comment-text,.comment-text,yt-formatted-string){
-  display:block!important;max-width:100%!important;margin:0!important;text-align:left!important;white-space:normal!important
-}
-html.vkvk-studio :is(ytcp-comment-thread,ytcp-comment) :is(#video-thumbnail,.video-thumbnail,ytcp-video-thumbnail){
-  flex:0 0 180px!important;grid-column:auto!important;justify-self:start!important;width:180px!important;margin:0!important;position:static!important
-}
-html.vkvk-studio ytcp-comment :is(#author-thumbnail,ytcp-comment-author,.author-thumbnail){grid-column:1!important;grid-row:1!important;margin:0!important;width:32px!important;height:32px!important}
+html.vkvk-studio ytcp-comment :is(#main,#body,#comment-content,.comment-content,#comment-text,.comment-text,yt-formatted-string){text-align:left!important}
 
 /* Layout values ported from the saved VK cabinet and youmorda_dev studio. */
 html.vkvk-studio[data-vkvk-route='overview'] :is(ytcd-channel-dashboard,#dashboard-content){max-width:none!important;width:100%!important}
