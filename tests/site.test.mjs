@@ -36,6 +36,8 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     await page.addScriptTag({ path: resolve('dist/site.js') });
     await page.locator('#vkvk-site-shell').waitFor();
     assert.equal(await page.locator('.vkvk-nav[data-route="home"]').getAttribute('href'), '/');
+    assert.equal(await page.locator('.vkvk-nav[data-route="live"]').getAttribute('href'), '/channel/UC4R8DWoMoI7CAwX8_LjQHig');
+    assert.match(await page.locator('.vkvk-nav[data-route="live"]').innerHTML(), /10\.52 9\.823/);
     assert.equal(await page.locator('.vkvk-nav[data-route="studio"]').getAttribute('href'), 'https://studio.youtube.com/');
     assert.ok(await page.locator('.vkvk-nav[data-route="home"] svg path').count(), 'VK icon is rendered');
     assert.equal(await page.locator('.vkvk-search input').getAttribute('placeholder'), 'Поиск видео');
@@ -63,7 +65,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
           <yt-avatar-shape><img src="data:image/gif;base64,R0lGODlhAQABAIAAAACAgP///ywAAAAAAQABAAACAUwAOw=="></yt-avatar-shape>
           <div id="subscriber-count">4,12 тыс. подписчиков</div>
           <yt-subscribe-button-view-model><button>Подписаться</button></yt-subscribe-button-view-model>
-        </yt-page-header-view-model><ytd-rich-grid-renderer><div id="contents"></div></ytd-rich-grid-renderer></ytd-browse>`;
+        </yt-page-header-view-model><ytd-rich-grid-renderer><div id="header"><ytd-feed-filter-chip-bar-renderer><button>Новые</button><button>Популярные</button><button>Старые</button></ytd-feed-filter-chip-bar-renderer></div><div id="contents"></div></ytd-rich-grid-renderer></ytd-browse>`;
       document.dispatchEvent(new Event('yt-navigate-finish'));
     });
     await page.waitForFunction(() => document.documentElement.dataset.vkvkRoute === 'channel');
@@ -71,6 +73,25 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     assert.equal(await page.locator('.vkvk-owner-controls a').count(), 3);
     assert.match(await page.locator('#subscriber-count').innerText(), /4,12 млн/);
     assert.equal(await page.locator('yt-subscribe-button-view-model').evaluate(node => getComputedStyle(node).display), 'none');
+    assert.equal(await page.locator('.vkvk-sort-chips').count(), 1);
+    assert.equal(await page.locator('ytd-feed-filter-chip-bar-renderer').evaluate(node => getComputedStyle(node).display), 'none');
+    assert.deepEqual(await page.locator('.vkvk-extra-tabs a').allInnerTexts(), ['Главная', 'Видео', 'Клипы', 'Трансляции', 'Плейлисты']);
+    await page.evaluate(() => {
+      history.pushState({}, '', '/@ExileShow');
+      document.querySelector('ytd-page-manager').innerHTML = `
+        <ytd-browse><yt-page-header-view-model>
+          <div class="ytPageHeaderViewModelHeadline">
+            <yt-avatar-shape><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="></yt-avatar-shape>
+            <div class="ytPageHeaderViewModelHeadlineInfo"><h1>ExileShow</h1></div>
+            <yt-subscribe-button-view-model><button>Подписаться</button></yt-subscribe-button-view-model>
+          </div>
+        </yt-page-header-view-model></ytd-browse>`;
+      document.dispatchEvent(new Event('yt-navigate-finish'));
+    });
+    await page.waitForFunction(() => document.querySelector('.vkvk-extra-tabs a')?.textContent === 'Главная');
+    assert.equal(await page.locator('.ytPageHeaderViewModelHeadline').evaluate(node => getComputedStyle(node).gap), '40px');
+    assert.equal(await page.locator('.ytPageHeaderViewModelHeadline yt-avatar-shape').evaluate(node => getComputedStyle(node).width), '80px');
+    assert.equal(await page.locator('.ytPageHeaderViewModelHeadline yt-subscribe-button-view-model').evaluate(node => node.style.marginLeft), 'auto');
     await page.evaluate(() => {
       history.pushState({}, '', '/feed/trending');
       document.querySelector('ytd-page-manager').innerHTML = '<ytd-browse><div id="contents"></div></ytd-browse>';

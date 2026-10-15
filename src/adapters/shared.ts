@@ -29,6 +29,8 @@ export async function preferences(): Promise<Preferences> {
   }
   return { ...defaults, ...stored };
 }
+export const liveHubPath = '/channel/UC4R8DWoMoI7CAwX8_LjQHig';
+
 export function contentRoute(path: string): string {
   if (path === '/') return 'home';
   if (path === '/results') return 'search';
@@ -37,6 +39,7 @@ export function contentRoute(path: string): string {
   if (path.startsWith('/shorts')) return 'shorts';
   if (path.startsWith('/playlist')) return 'playlist';
   if (path === '/feed/playlists') return 'playlists';
+  if (path === '/feed/live' || path === liveHubPath) return 'live';
   if (path.startsWith('/channel/') || path.startsWith('/@') || path.startsWith('/c/')) return 'channel';
   if (path.includes('/subscriptions')) return 'subscriptions';
   if (path.includes('/history')) return 'history';

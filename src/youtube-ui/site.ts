@@ -1,12 +1,12 @@
 import { loadOwnerCatalog, mixOwnerVideos, ownerChannel, type OwnerVideo } from '../adapters/owner';
-import { applyVidiqVisibility, contentRoute, preferences } from '../adapters/shared';
+import { applyVidiqVisibility, contentRoute, liveHubPath, preferences } from '../adapters/shared';
 import { vkMarkSvg, vkVideoLogoSvg } from '../vk-design-system/icons';
 import { vkIcons, type VkIconName } from '../vk-design-system/vk-icons.generated';
 
 type NavItem = { href: string; route: string; label: string; icon: VkIconName; external?: boolean; arrow?: boolean };
 
 const groups: NavItem[][] = [
-  [{ href: '/feed/live', route: 'live', label: 'Стримы', icon: 'live', arrow: true }],
+  [{ href: liveHubPath, route: 'live', label: 'Стримы', icon: 'live', arrow: true }],
   [
     { href: '/', route: 'home', label: 'Главная', icon: 'home' },
     { href: '/results?search_query=тренды+сегодня&vkvk=trending', route: 'trending', label: 'Тренды', icon: 'trends' },
@@ -47,6 +47,7 @@ let recsysShowTimer = 0;
 let ownerVideos: OwnerVideo[] = [];
 let ownerRequested = false;
 let trendingPick = '';
+let liveEmptyTicks = 0;
 
 function currentRoute(): string {
   const search = new URLSearchParams(location.search);
@@ -92,6 +93,41 @@ function syncTabBrand(): void {
   if (icon.href !== href) icon.href = href;
 }
 
+function parentAcross(node: HTMLElement): HTMLElement | null {
+  if (node.parentElement) return node.parentElement;
+  const root = node.getRootNode();
+  return root instanceof ShadowRoot && root.host instanceof HTMLElement ? root.host : null;
+}
+function deepQuery<T extends Element>(root: ParentNode, selector: string): T | null {
+  const found = root.querySelector<T>(selector);
+  if (found) return found;
+  for (const node of root.querySelectorAll('*')) {
+    if (node.shadowRoot) {
+      const inner = deepQuery<T>(node.shadowRoot, selector);
+      if (inner) return inner;
+    }
+  }
+  return null;
+}
+function deepEach(root: ParentNode, visit: (node: Element) => void): void {
+  for (const node of root.querySelectorAll('*')) {
+    visit(node);
+    if (node.shadowRoot) deepEach(node.shadowRoot, visit);
+  }
+}
+function paintShadows(root: ParentNode, css: string, key: string): void {
+  const visit = (node: ParentNode) => {
+    if (node instanceof ShadowRoot && !node.querySelector(`style[data-vkvk-paint="${key}"]`)) {
+      const style = document.createElement('style');
+      style.dataset.vkvkPaint = key;
+      style.textContent = css;
+      node.append(style);
+    }
+    node.querySelectorAll('*').forEach(child => { if (child.shadowRoot) visit(child.shadowRoot); });
+  };
+  if (root instanceof Element && root.shadowRoot) visit(root.shadowRoot);
+  visit(root);
+}
 function element<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = ''): HTMLElementTagNameMap[K] {
   const result = document.createElement(tag);
   if (className) result.className = className;
@@ -111,8 +147,7 @@ function navLink(item: NavItem): HTMLAnchorElement {
   link.href = item.href;
   link.dataset.route = item.route;
   if (item.external) link.target = '_blank';
-  const streamsIcon = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="3.2" y="4.2" width="17.6" height="15.6" rx="4" fill="none" stroke="currentColor" stroke-width="1.7"/><path fill="currentColor" d="M10.1 8.35v7.3l6.15-3.65z"/></svg>';
-  link.innerHTML = `${item.icon === 'live' ? streamsIcon : vkIcons[item.icon]}<span>${item.label}</span>${item.arrow ? vkIcons.chevronRight : ''}`;
+  link.innerHTML = `${vkIcons[item.icon]}<span>${item.label}</span>${item.arrow ? vkIcons.chevronRight : ''}`;
   return link;
 }
 function clickNative(selector: string): boolean {
@@ -694,12 +729,15 @@ function syncLikeHearts(): void {
 function decorateOwnerMode(): void {
   const ownerChannelPage = isOwnerChannelPath();
   const ownerWatch = isOwnerWatch();
+  const ownerVideosTab = ownerChannelPage && /\/videos\/?$/.test(location.pathname);
   document.documentElement.classList.toggle('vkvk-owner-channel', ownerChannelPage);
+  document.documentElement.classList.toggle('vkvk-owner-videos', ownerVideosTab);
   document.documentElement.classList.toggle('vkvk-owner-video', ownerWatch);
   document.querySelectorAll('.vkvk-owner-native-subscribe').forEach(node => {
     node.classList.toggle('vkvk-owner-native-subscribe', ownerChannelPage);
   });
   if (!ownerChannelPage) document.querySelector('.vkvk-owner-controls')?.remove();
+  if (!ownerVideosTab) document.querySelector('.vkvk-sort-chips')?.remove();
   if (ownerChannelPage || ownerWatch) {
     document.querySelectorAll<HTMLElement>(
       'yt-subscribe-button-view-model,ytd-subscribe-button-renderer'
@@ -737,17 +775,18 @@ function decorateOwnerMode(): void {
     const placed = host?.querySelector<HTMLElement>('.vkvk-owner-controls');
     const headline = host?.querySelector<HTMLElement>('.ytPageHeaderViewModelHeadline');
     if (placed && headline && placed.parentElement !== headline) headline.append(placed);
-    const videosTab = /\/videos\/?$/.test(location.pathname);
-    if (videosTab && !document.querySelector('.vkvk-sort-chips')) {
-      const chips = element('div', 'vkvk-sort-chips');
+    const chips = document.querySelector<HTMLElement>('.vkvk-sort-chips');
+    if (ownerVideosTab && host && !chips) {
+      const row = element('div', 'vkvk-sort-chips');
       const current = new URLSearchParams(location.search).get('sort') || 'dd';
       for (const [label, sort] of [['Новые', 'dd'], ['Популярные', 'p'], ['Старые', 'da']] as const) {
         const link = element('a', current === sort ? 'active' : '', label);
         link.href = `${ownerChannel.url}/videos?view=0&sort=${sort}&shelf_id=0`;
-        chips.append(link);
+        row.append(link);
       }
-      if (host) host.insertAdjacentElement('afterend', chips);
+      host.insertAdjacentElement('afterend', row);
     }
+    hideNativeSortChips();
   }
   if (!ownerChannelPage && !ownerWatch) return;
   const metricSelectors = ownerChannelPage
@@ -795,11 +834,74 @@ function decorateDescriptions(): void {
     }
   });
 }
+const otherHeaderStyle = `
+:is([class*="headline" i],[class*="page-header-content" i],.ytPageHeaderViewModelHeadline){
+  display:flex!important;flex-direction:row!important;align-items:flex-start!important;gap:40px!important;width:100%!important
+}
+:is(yt-decorated-avatar-view-model,yt-avatar-shape,#avatar,[class*="avatar-shape" i]){
+  flex:none!important;width:80px!important;min-width:80px!important;height:80px!important;margin:18px 0 0 8px!important
+}
+:is(yt-avatar-shape,#avatar,[class*="avatar-shape" i]) img{
+  width:80px!important;height:80px!important;border-radius:50%!important;object-fit:cover!important;box-shadow:0 0 0 3px #222!important
+}
+:is(yt-subscribe-button-view-model,ytd-subscribe-button-renderer){
+  margin:22px 0 0 auto!important;flex:none!important;align-self:flex-start!important
+}`;
 function decorateOtherChannelAvatar(): void {
   if (contentRoute(location.pathname) !== 'channel' || isOwnerChannelPath()) return;
-  const headline = document.querySelector<HTMLElement>('.ytPageHeaderViewModelHeadline');
-  const subscribe = document.querySelector<HTMLElement>('yt-subscribe-button-view-model, ytd-subscribe-button-renderer');
-  if (headline && subscribe && !headline.contains(subscribe)) headline.append(subscribe);
+  const header = document.querySelector<HTMLElement>('yt-page-header-view-model, ytd-tabbed-page-header, ytd-c4-tabbed-header-renderer, #page-header');
+  if (!header) return;
+  paintShadows(header, otherHeaderStyle, 'other-header');
+  const avatar = deepQuery<HTMLElement>(header, 'yt-decorated-avatar-view-model, yt-avatar-shape, #avatar, .yt-spec-avatar-shape');
+  const avatarRow = avatar ? parentAcross(avatar) : null;
+  const row = avatarRow && !avatarRow.querySelector('yt-image-banner-view-model, #header-banner, .page-header-banner') ? avatarRow : null;
+  if (row) {
+    row.style.setProperty('display', 'flex', 'important');
+    row.style.setProperty('flex-direction', 'row', 'important');
+    row.style.setProperty('align-items', 'flex-start', 'important');
+    row.style.setProperty('gap', '40px', 'important');
+    row.style.setProperty('width', '100%', 'important');
+  }
+  if (avatar) {
+    avatar.style.setProperty('width', '80px', 'important');
+    avatar.style.setProperty('min-width', '80px', 'important');
+    avatar.style.setProperty('height', '80px', 'important');
+    avatar.style.setProperty('flex', 'none', 'important');
+    avatar.style.setProperty('margin', '18px 0 0 8px', 'important');
+  }
+  const subscribe = deepQuery<HTMLElement>(header, 'yt-subscribe-button-view-model, ytd-subscribe-button-renderer');
+  if (!subscribe || subscribe.closest('.vkvk-owner-controls')) return;
+  const actions = parentAcross(subscribe);
+  if (row && actions && actions !== row && parentAcross(actions) === parentAcross(row)) row.append(actions);
+  const target = row?.contains(subscribe) ? subscribe : actions;
+  target?.style.setProperty('margin-left', 'auto', 'important');
+  target?.style.setProperty('margin-top', '18px', 'important');
+  target?.style.setProperty('flex', 'none', 'important');
+}
+const sortWord = /^(?:новые|популярные|старые|latest|popular|oldest)$/i;
+function hideNativeSortChips(): void {
+  if (!document.documentElement.classList.contains('vkvk-owner-videos')) return;
+  const hosts = new Set<HTMLElement>();
+  deepEach(document.body, node => {
+    if (!(node instanceof HTMLElement) || node.closest('.vkvk-sort-chips, #vkvk-site-shell')) return;
+    const label = (node.textContent || '').replace(/\s+/g, ' ').trim();
+    if (!sortWord.test(label) || node.children.length > 3) return;
+    let host: HTMLElement | null = node;
+    for (let depth = 0; host && depth < 8; depth += 1) {
+      if (host.closest('.vkvk-sort-chips, #vkvk-site-shell')) return;
+      if (/^(?:YTD-BROWSE|YTD-RICH-GRID-RENDERER|YTD-PAGE-MANAGER|YTD-TWO-COLUMN-BROWSE-RESULTS-RENDERER|YTD-SECTION-LIST-RENDERER|YT-PAGE-HEADER-VIEW-MODEL)$/.test(host.tagName)) break;
+      if (host.id === 'contents' || host.id === 'primary' || host.querySelector('a[href*="watch"], ytd-thumbnail, ytd-rich-item-renderer')) break;
+      const text = (host.innerText || host.textContent || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('ru-RU');
+      const hits = ['новые', 'популярные', 'старые', 'latest', 'popular', 'oldest'].filter(word => text.includes(word)).length;
+      const rect = host.getBoundingClientRect();
+      if (hits >= 2 && text.length < 90 && (rect.height === 0 || rect.height <= 88)) hosts.add(host);
+      host = parentAcross(host);
+    }
+  });
+  hosts.forEach(host => {
+    host.setAttribute('data-vkvk-native-sort', '');
+    host.style.setProperty('display', 'none', 'important');
+  });
 }
 function decorateTrendingChannels(): void {
   if (currentRoute() !== 'trending') return;
@@ -821,38 +923,51 @@ function decorateTrendingChannels(): void {
 function decorateLiveShelf(): void {
   const live = contentRoute(location.pathname) === 'live';
   if (!live) {
+    liveEmptyTicks = 0;
     document.querySelector('.vkvk-live-head')?.remove();
     return;
   }
-  const page = document.querySelector<HTMLElement>('ytd-browse #contents, ytd-two-column-browse-results-renderer');
-  if (!page) return;
-  let head = page.querySelector<HTMLElement>(':scope > .vkvk-live-head');
+  if (location.pathname === '/feed/live') {
+    const cards = document.querySelector('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-video-renderer, yt-lockup-view-model, a[href*="watch?v="]');
+    if (cards) liveEmptyTicks = 0;
+    else if (++liveEmptyTicks >= 6) {
+      liveEmptyTicks = 0;
+      location.assign(liveHubPath);
+      return;
+    }
+  }
+  const anchor = document.querySelector<HTMLElement>('ytd-browse #primary, ytd-two-column-browse-results-renderer, ytd-browse');
+  if (!anchor) return;
+  let head = document.querySelector<HTMLElement>('.vkvk-live-head');
   if (!head) {
     head = element('div', 'vkvk-live-head');
     head.append(element('h1', '', 'Стримы'));
     const chips = element('div', 'vkvk-live-chips');
     for (const [label, href] of [
-      ['Все', '/feed/live'],
+      ['Все', liveHubPath],
       ['Видеоигры', '/gaming'],
       ['Музыка', '/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ'],
-      ['Спорт', '/results?search_query=спорт+live'],
+      ['Спорт', '/results?search_query=спорт&sp=EgJAAQ%3D%3D'],
     ] as const) {
       const link = element('a', location.pathname === href ? 'active' : '', label);
       link.href = href;
       chips.append(link);
     }
     head.append(chips);
-    page.prepend(head);
   }
-  page.querySelectorAll<HTMLElement>('ytd-thumbnail, .ytThumbnailViewModelHost').forEach(thumb => {
-    if (thumb.querySelector('.vkvk-live-label')) return;
+  if (head.parentElement !== anchor) anchor.prepend(head);
+  document.querySelectorAll<HTMLElement>('ytd-thumbnail, .ytThumbnailViewModelHost, ytd-rich-grid-media #thumbnail').forEach(thumb => {
+    if (thumb.closest('#vkvk-site-shell') || thumb.querySelector('.vkvk-live-label')) return;
     thumb.classList.add('vkvk-live-thumb');
     thumb.append(element('span', 'vkvk-live-label', 'LIVE'));
   });
 }
 
 function decorateChannelChrome(): void {
-  if (contentRoute(location.pathname) !== 'channel') return;
+  if (contentRoute(location.pathname) !== 'channel') {
+    document.querySelector('.vkvk-extra-tabs')?.remove();
+    return;
+  }
   const tabStyle = ':host,:host *{box-shadow:none!important;border-bottom:0!important}:host::after,:host::before{content:none!important;display:none!important;height:0!important}[class*="underline"],[class*="Underline"],[class*="indicator"],[class*="tab-bar"]{display:none!important;height:0!important;background:transparent!important}';
   const paintTabs = (root: ParentNode, insideTab: boolean) => {
     root.querySelectorAll<HTMLElement>('*').forEach(child => {
@@ -871,53 +986,35 @@ function decorateChannelChrome(): void {
     });
   };
   paintTabs(document, false);
-  const seenTab = new Set<string>();
-  document.querySelectorAll<HTMLElement>('yt-tab-shape, tp-yt-paper-tab').forEach(tab => {
-    const label = (tab.textContent || '').replace(/\s+/g, ' ').trim();
-    if (!label) return;
-    if (seenTab.has(label)) tab.style.setProperty('display', 'none', 'important');
-    else seenTab.add(label);
-  });
   const header = document.querySelector<HTMLElement>('yt-page-header-view-model, ytd-tabbed-page-header, #page-header, ytd-c4-tabbed-header-renderer');
-  const base = location.pathname.match(/^\/(?:@[^/]+|channel\/[^/]+|c\/[^/]+)/)?.[0];
+  const base = location.pathname.match(/^\/(?:@[^/]+|channel\/[^/]+|c\/[^/]+|user\/[^/]+)/)?.[0];
   if (!base || !header) return;
-  const labels = new Set<string>();
-  const visit = (root: ParentNode) => {
-    root.querySelectorAll<HTMLElement>('yt-tab-shape, tp-yt-paper-tab, [role="tab"]').forEach(tab => {
-      if (tab.closest('.vkvk-extra-tabs')) return;
-      const style = getComputedStyle(tab);
-      if (style.display === 'none' || style.visibility === 'hidden') return;
-      const label = (tab.textContent || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('ru-RU');
-      if (label && label.length < 32) labels.add(label);
-    });
-    root.querySelectorAll('*').forEach(child => { if (child.shadowRoot) visit(child.shadowRoot); });
-  };
-  visit(header);
-  const wanted = [
+  const scope = header.parentElement || header;
+  deepEach(scope, node => {
+    if (!(node instanceof HTMLElement) || node.closest('.vkvk-extra-tabs, .vkvk-sort-chips')) return;
+    const name = node.tagName.toLowerCase();
+    const tabBar = name === 'yt-tab-group-shape' || name === 'tp-yt-paper-tabs' || node.id === 'tabs' || node.id === 'tabs-inner-container' || node.getAttribute('role') === 'tablist';
+    if (!tabBar) return;
+    const rect = node.getBoundingClientRect();
+    if (rect.height === 0 || rect.height < 72) node.style.setProperty('display', 'none', 'important');
+  });
+  let row = document.querySelector<HTMLElement>('.vkvk-extra-tabs');
+  if (!row) {
+    row = element('nav', 'vkvk-extra-tabs');
+    header.insertAdjacentElement('afterend', row);
+  } else if (row.previousElementSibling !== header) header.insertAdjacentElement('afterend', row);
+  const tabs = [
     ['Главная', base],
     ['Видео', `${base}/videos`],
     ['Клипы', `${base}/shorts`],
     ['Трансляции', `${base}/streams`],
     ['Плейлисты', `${base}/playlists`],
   ] as const;
-  const missing = wanted.filter(([label]) => {
-    const key = label.toLocaleLowerCase('ru-RU');
-    return ![...labels].some(item => item === key || item.startsWith(`${key} `));
-  });
-  let row = header.querySelector<HTMLElement>(':scope > .vkvk-extra-tabs');
-  if (!missing.length) {
-    row?.remove();
-    return;
-  }
-  if (!row) {
-    row = element('div', 'vkvk-extra-tabs');
-    header.append(row);
-  }
-  const signature = `${location.pathname}|${missing.map(([label]) => label).join('|')}`;
+  const current = location.pathname.replace(/\/$/, '');
+  const signature = `${current}|${base}`;
   if (row.dataset.vkvkTabs === signature) return;
   row.dataset.vkvkTabs = signature;
-  const current = location.pathname.replace(/\/$/, '');
-  row.replaceChildren(...missing.map(([label, href]) => {
+  row.replaceChildren(...tabs.map(([label, href]) => {
     const link = element('a', current === href.replace(/\/$/, '') ? 'active' : '', label);
     link.href = href;
     return link;

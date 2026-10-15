@@ -9,7 +9,7 @@ const icons = {
   bell: '24/notification_outline_24',
   chevronDown: '16/chevron_16',
   chevronRight: '24/chevron_right_outline_24',
-  live: '24/live_outline_24',
+  live: '24/video_square_outline_24',
   home: '24/home_outline_24',
   trends: '24/flash_outline_24',
   clips: '24/logo_clips_outline_24',
