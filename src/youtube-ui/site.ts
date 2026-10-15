@@ -187,8 +187,15 @@ function renderRussiaFeed(): void {
   if (route === 'watch') host.prepend(panel);
   else host.prepend(panel);
 }
+function syncFullscreen(): void {
+  const active = Boolean(
+    document.fullscreenElement
+    || document.querySelector('#movie_player.ytp-fullscreen, .html5-video-player.ytp-fullscreen')
+  );
+  document.documentElement.classList.toggle('vkvk-fullscreen', active);
+}
 function nudgePlayerLayout(): void {
-  if (document.querySelector('.ytp-fullscreen') || document.fullscreenElement) return;
+  if (document.documentElement.classList.contains('vkvk-fullscreen') || document.querySelector('.ytp-fullscreen') || document.fullscreenElement) return;
   const frame = document.querySelector<HTMLElement>('ytd-watch-flexy #player-container-inner');
   const player = document.querySelector<HTMLElement>('#movie_player');
   const box = player?.querySelector<HTMLElement>('.html5-video-container');
@@ -1431,6 +1438,7 @@ function forceDarkTheme(): void {
 }
 function refresh(): void {
   if (!enabled) return;
+  syncFullscreen();
   forceDarkTheme();
   if (shell && !shell.isConnected) shell = null;
   renderShell();
@@ -1548,6 +1556,8 @@ function keepFeedScroll(): void {
 }
 keepFeedScroll();
 document.addEventListener('yt-navigate-finish', () => schedule(true));
+document.addEventListener('fullscreenchange', () => { syncFullscreen(); schedule(true); });
+document.addEventListener('webkitfullscreenchange', () => { syncFullscreen(); schedule(true); });
 window.addEventListener('popstate', () => schedule(true));
 window.addEventListener('keydown', event => {
   if (!enabled || contentRoute(location.pathname) !== 'watch') return;

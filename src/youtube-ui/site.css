@@ -1249,13 +1249,16 @@ html.vkvk-russia[data-vkvk-route='watch'] :is(#related,ytd-watch-next-secondary-
 html.vkvk-site :is(ytd-rich-item-renderer,ytd-rich-grid-row,ytd-continuation-item-renderer){overflow-anchor:auto}
 .vkvk-native-owner-card,.vkvk-owner-related-card{overflow-anchor:none}
 
-html.vkvk-site:has(.ytp-fullscreen) ytd-page-manager,
-html.vkvk-site:has(:fullscreen) ytd-page-manager{margin:0!important}
-html.vkvk-site:has(.ytp-fullscreen) :is(#player,#player-container,#player-container-inner,#player-container-outer,#movie_player,ytd-player,.html5-video-player),
-html.vkvk-site :is(#movie_player.ytp-fullscreen,.html5-video-player.ytp-fullscreen),
-html.vkvk-site :fullscreen{
+html.vkvk-site.vkvk-fullscreen #vkvk-site-shell,
+html.vkvk-site:has(.ytp-fullscreen) #vkvk-site-shell,
+html.vkvk-site:has(:fullscreen) #vkvk-site-shell{display:none!important}
+html.vkvk-site.vkvk-fullscreen ytd-page-manager,
+html.vkvk-site:has(.ytp-fullscreen) ytd-page-manager{margin:0!important}
+html.vkvk-site.vkvk-fullscreen[data-vkvk-route='watch'] ytd-watch-flexy :is(#player,#player-container,#player-container-inner,#player-container-outer,#full-bleed-container,ytd-player,#movie_player,.html5-video-player),
+html.vkvk-site[data-vkvk-route='watch']:has(.ytp-fullscreen) ytd-watch-flexy :is(#player,#player-container,#player-container-inner,#player-container-outer,#full-bleed-container,ytd-player,#movie_player,.html5-video-player){
   position:fixed!important;
   inset:0!important;
+  z-index:2147483646!important;
   width:100vw!important;
   height:100vh!important;
   max-width:none!important;
@@ -1263,15 +1266,23 @@ html.vkvk-site :fullscreen{
   min-width:0!important;
   min-height:0!important;
   margin:0!important;
+  padding:0!important;
   aspect-ratio:auto!important;
   border-radius:0!important;
-  z-index:2147483000!important;
+  overflow:visible!important;
+  transform:none!important;
   background:#000!important
 }
-html.vkvk-site:has(.ytp-fullscreen) video.html5-main-video,
-html.vkvk-site :fullscreen video{
+html.vkvk-site.vkvk-fullscreen .html5-video-container,
+html.vkvk-site.vkvk-fullscreen video.html5-main-video,
+html.vkvk-site:has(.ytp-fullscreen) .html5-video-container,
+html.vkvk-site:has(.ytp-fullscreen) video.html5-main-video{
+  position:absolute!important;
+  inset:0!important;
   width:100%!important;
   height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
   object-fit:contain!important
 }
 

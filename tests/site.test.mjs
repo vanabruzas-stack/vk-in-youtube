@@ -181,6 +181,17 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     assert.equal(await page.locator('html').evaluate(node => node.classList.contains('vkvk-watch-side-expanded')), true);
     assert.deepEqual(await page.evaluate(() => window.storageWrites.at(-1)), { sideExpanded: true });
     await page.evaluate(() => {
+      const player = document.createElement('div');
+      player.id = 'movie_player';
+      player.className = 'html5-video-player ytp-fullscreen';
+      document.querySelector('ytd-watch-flexy')?.append(player);
+      document.dispatchEvent(new Event('yt-navigate-finish'));
+    });
+    await page.waitForFunction(() => document.documentElement.classList.contains('vkvk-fullscreen'));
+    assert.equal(await page.locator('#vkvk-site-shell').evaluate(node => getComputedStyle(node).display), 'none');
+    assert.equal(await page.locator('#movie_player').evaluate(node => getComputedStyle(node).position), 'fixed');
+    assert.equal(await page.locator('#movie_player').evaluate(node => getComputedStyle(node).zIndex), '2147483646');
+    await page.evaluate(() => {
       history.pushState({}, '', '/shorts/12345678901');
       document.querySelector('ytd-page-manager').innerHTML = `
         <ytd-shorts><ytd-reel-video-renderer><div id="short-video-container"><div id="player-container"></div></div>
