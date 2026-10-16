@@ -674,6 +674,7 @@ function formatBoost(value: number, millions: boolean): string {
   return millions ? `${text} ${major}` : `${text} ${minor}`;
 }
 function boostedMetricValue(number: string, unit = ''): string {
+  if (number.replace(/\D/g, '').length > 9) return formatBoost(89.9, true);
   const parsed = Number(number.replace(/\s/g, '').replace(',', '.'));
   if (!Number.isFinite(parsed) || parsed < 0) return '';
   const normalizedUnit = unit.toLocaleLowerCase('ru-RU');
@@ -2000,6 +2001,9 @@ new MutationObserver(records => {
       return Boolean((record.target as Element).closest(
         'yt-lockup-view-model,shorts-lockup-view-model,ytm-shorts-lockup-view-model,ytd-rich-grid-media,ytd-grid-video-renderer,ytd-video-renderer,yt-page-header-view-model,ytd-tabbed-page-header,like-button-view-model,#view-count,.view-count'
       ));
+    }
+    if (record.target instanceof Element && record.target.closest('ytd-watch-metadata #view-count, ytd-watch-metadata .view-count, ytd-watch-metadata ytd-watch-info-text')) {
+      return !record.target.closest('.vkvk-watch-views');
     }
     return [...record.addedNodes, ...record.removedNodes].some(changed =>
       changed instanceof Element

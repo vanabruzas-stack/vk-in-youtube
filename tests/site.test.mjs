@@ -197,6 +197,9 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
       document.dispatchEvent(new Event('yt-navigate-finish'));
     });
     await page.waitForFunction(() => document.querySelector('.vkvk-watch-views')?.textContent?.startsWith('70'));
+    await page.evaluate(() => { document.querySelector('#view-count').textContent = '12345678901234567890123456789 просмотров'; });
+    await page.waitForFunction(() => document.querySelector('.vkvk-watch-views')?.textContent?.startsWith('89,9 млн'));
+    assert.doesNotMatch(await page.locator('.vkvk-watch-views').innerText(), /\d{12,}/);
     assert.equal(await page.locator('.vkvk-watch-views').getAttribute('data-pin'), '1');
     await page.waitForFunction(() => document.querySelector('#shadow-like')?.dataset.vkvkLiked === 'true');
     assert.match(await page.locator('#shadow-like').evaluate(node => {
