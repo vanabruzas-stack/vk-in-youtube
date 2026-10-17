@@ -13,7 +13,7 @@ test('Studio shell keeps native navigation/upload and shows period statistics', 
         <ytcp-app><ytcp-header><ytcp-button id="create-button">Создать</ytcp-button></ytcp-header>
           <ytcp-navigation-drawer><a href="/channel/UC5-tQZ_dtoCVGtItNRy5RUQ">Канал</a><ytcp-navigation-item id="content-link">Контент</ytcp-navigation-item></ytcp-navigation-drawer>
           <main id="main-content"><ytcp-videos-page>
-            <ytcp-video-row><a href="/video/12345678901/edit">Тестовый ролик</a></ytcp-video-row>
+            <ytcp-video-row><ytcp-video-thumbnail id="video-thumbnail" style="display:block;position:relative;width:120px;height:68px"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAACAgP///ywAAAAAAQABAAACAUwAOw==" alt=""><span style="position:absolute;right:4px;bottom:4px">8:39</span></ytcp-video-thumbnail><a href="/video/12345678901/edit">Тестовый ролик</a></ytcp-video-row>
           </ytcp-videos-page></main>
         </ytcp-app></body></html>`,
     }));
@@ -44,6 +44,11 @@ test('Studio shell keeps native navigation/upload and shows period statistics', 
     await page.addStyleTag({ path: resolve('dist/studio.css') });
     await page.addScriptTag({ path: resolve('dist/studio.js') });
     await page.locator('.vkvk-period-badge').waitFor();
+    assert.deepEqual(await page.locator('ytcp-video-row #video-thumbnail').evaluate(node => {
+      const frame = node.getBoundingClientRect();
+      const image = node.querySelector('img').getBoundingClientRect();
+      return [Math.round(frame.width), Math.round(image.width), Math.round(frame.height), Math.round(image.height)];
+    }), [120, 120, 68, 68], 'the thumbnail image fills its native frame');
     assert.equal(await page.locator('.vkvk-back').getAttribute('href'), 'https://www.youtube.com/channel/UC5-tQZ_dtoCVGtItNRy5RUQ');
     assert.equal(await page.locator('.vkvk-back').getAttribute('data-channel-url'), 'https://www.youtube.com/channel/UC5-tQZ_dtoCVGtItNRy5RUQ');
     assert.match(await page.locator('.vkvk-period-badge').innerText(), /136/);
