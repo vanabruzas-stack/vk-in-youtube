@@ -640,11 +640,24 @@ function arrangePlayerControls(): void {
   const player = document.querySelector<HTMLElement>('#movie_player');
   const left = player?.querySelector<HTMLElement>('.ytp-left-controls');
   const right = player?.querySelector<HTMLElement>('.ytp-right-controls');
-  const volume = left?.querySelector<HTMLElement>('.ytp-volume-area');
-  if (!left || !right || !volume) return;
-  const autoplay = right.querySelector<HTMLElement>('.ytp-autonav-toggle-button-container, .ytp-autonav-toggle-button');
-  if (autoplay) autoplay.after(volume);
-  else right.prepend(volume);
+  if (!left || !right) return;
+  const volume = left.querySelector<HTMLElement>('.ytp-volume-area');
+  const controls = volume ? [volume] : [
+    left.querySelector<HTMLElement>('.ytp-mute-button'),
+    left.querySelector<HTMLElement>('.ytp-volume-panel'),
+  ].filter((node): node is HTMLElement => Boolean(node));
+  if (!controls.length) return;
+  const autoplay = [...right.children].find(child =>
+    child.matches('.ytp-autonav-toggle-button-container,.ytp-autonav-toggle-button')
+    || Boolean(child.querySelector('.ytp-autonav-toggle-button'))
+  );
+  let anchor = autoplay || null;
+  for (const control of controls) {
+    control.classList.add('vkvk-volume-control');
+    if (anchor) anchor.after(control);
+    else right.prepend(control);
+    anchor = control;
+  }
 }
 
 function decorateWatchPlayer(): void {
@@ -2028,6 +2041,13 @@ document.addEventListener('click', event => {
 });
 new MutationObserver(records => {
   if (records.every(record => record.target.parentElement?.closest('#vkvk-site-shell, .vkvk-watch-views'))) return;
+  if (enabled && contentRoute(location.pathname) === 'watch') {
+    const playerControls = '.ytp-chrome-controls,.ytp-left-controls,.ytp-right-controls,.ytp-volume-area,.ytp-mute-button,.ytp-volume-panel';
+    const controlsChanged = records.some(record => record.type === 'childList'
+      && [...record.addedNodes, ...record.removedNodes].some(node => node instanceof Element
+        && (node.matches(playerControls) || Boolean(node.querySelector(playerControls)))));
+    if (controlsChanged) queueMicrotask(arrangePlayerControls);
+  }
   const relevantSelector = [
     'ytd-app', 'ytd-page-manager', 'yt-lockup-view-model', 'shorts-lockup-view-model', 'ytm-shorts-lockup-view-model', 'ytd-rich-grid-media',
     'ytd-grid-video-renderer', 'ytd-video-renderer', 'ytd-rich-item-renderer',

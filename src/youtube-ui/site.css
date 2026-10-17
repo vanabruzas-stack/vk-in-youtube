@@ -626,6 +626,8 @@ html.vkvk-site[data-vkvk-route='watch'] .ytp-settings-menu{width:286px!important
    moves the seek bar over the picture and clips native controls. */
 html.vkvk-site[data-vkvk-route='watch'] #movie_player .ytp-chrome-bottom{background:linear-gradient(to bottom,transparent,#000 80%)!important}
 html.vkvk-site[data-vkvk-route='watch'] #movie_player .ytp-time-display{font-family:VKLocal,Roboto,Arial,sans-serif!important;color:#fff!important}
+html.vkvk-site[data-vkvk-route='watch'] #movie_player .ytp-right-controls>.ytp-volume-area.vkvk-volume-control{display:inline-flex!important;align-items:center!important;width:auto!important;max-width:none!important;overflow:visible!important}
+html.vkvk-site[data-vkvk-route='watch'] #movie_player .ytp-right-controls :is(.ytp-volume-area.vkvk-volume-control .ytp-volume-panel,.ytp-volume-panel.vkvk-volume-control){display:block!important;width:52px!important;min-width:52px!important;max-width:52px!important;opacity:1!important;visibility:visible!important;overflow:visible!important}
 html.vkvk-site[data-vkvk-route='watch'] #movie_player .ytp-scrubber-button{background:#fff!important}
 html.vkvk-site[data-vkvk-route='watch'] #movie_player .ytp-settings-menu{border-radius:8px!important;background:rgba(5,5,8,.96)!important;box-shadow:0 8px 28px #000a!important}
 html.vkvk-watch:not(.vkvk-fullscreen):not(:has(.ytp-fullscreen)) :is(#player,#player-container,#player-container-inner,#player-container-outer,#movie_player,ytd-player,.html5-video-player){overflow:visible!important}
