@@ -423,8 +423,9 @@ function syncChannel(): void {
 function alignStudioSurface(): void {
   const side = document.querySelector('.vkvk-side');
   const edge = Math.max(240, Math.round(side?.getBoundingClientRect().right || 272));
-  document.querySelectorAll<HTMLElement>('#main-content, #content, ytcp-entity-page').forEach(root => {
-    if (root.closest('#vkvk-studio-shell')) return;
+  const surfaceSelector = '#main-content, #content, ytcp-entity-page';
+  document.querySelectorAll<HTMLElement>(surfaceSelector).forEach(root => {
+    if (root.closest('#vkvk-studio-shell') || root.parentElement?.closest(surfaceSelector)) return;
     root.style.setProperty('margin-left', '0', 'important');
     root.style.setProperty('width', `calc(100% - ${edge}px)`, 'important');
     root.style.setProperty('max-width', 'none', 'important');

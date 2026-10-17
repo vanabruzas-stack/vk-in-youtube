@@ -87,6 +87,7 @@ html:has(.ytp-fullscreen) #vkvk-site-shell{display:none}
 html.vkvk-side-collapsed .vkvk-side{width:var(--vk-side-collapsed);padding:8px 10px}
 html.vkvk-side-collapsed .vkvk-nav{justify-content:center;padding:0}
 html.vkvk-side-collapsed .vkvk-nav :is(span,svg:last-child:not(:first-child),.vkvk-dot){display:none}
+html.vkvk-side-collapsed #vkvk-site-shell .vkvk-nav>svg:last-child:not(:first-child){display:none!important}
 html.vkvk-side-collapsed .vkvk-subscriptions,
 html.vkvk-site[data-vkvk-route='watch']:not(.vkvk-watch-side-expanded) .vkvk-subscriptions{display:flex!important;flex-direction:column;align-items:center;gap:6px;margin-top:8px}
 html.vkvk-side-collapsed .vkvk-subscription,
@@ -102,6 +103,7 @@ html.vkvk-site[data-vkvk-route='watch']:not(.vkvk-watch-side-expanded) .vkvk-sub
 html.vkvk-site[data-vkvk-route='watch'] .vkvk-side{display:block;width:var(--vk-side-collapsed);padding:8px 10px}
 html.vkvk-site[data-vkvk-route='watch'] .vkvk-nav{justify-content:center;padding:0}
 html.vkvk-site[data-vkvk-route='watch'] .vkvk-nav :is(span,svg:last-child:not(:first-child),.vkvk-dot){display:none}
+html.vkvk-site[data-vkvk-route='watch']:not(.vkvk-watch-side-expanded) #vkvk-site-shell .vkvk-nav>svg:last-child:not(:first-child){display:none!important}
 html.vkvk-site[data-vkvk-route='watch'].vkvk-watch-side-expanded .vkvk-side{width:var(--vk-side)!important;padding:8px 12px 24px!important}
 html.vkvk-site[data-vkvk-route='watch'].vkvk-watch-side-expanded .vkvk-nav{justify-content:flex-start!important;padding:0 10px!important}
 html.vkvk-site[data-vkvk-route='watch'].vkvk-watch-side-expanded .vkvk-nav span{display:block!important}
@@ -483,6 +485,9 @@ html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-m
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model:has(button[aria-pressed='true'])::before,
 html.vkvk-owner-video :is(ytd-watch-metadata,ytd-watch-flexy) like-button-view-model[data-vkvk-liked='true']::before{background:#fff!important;-webkit-mask:var(--vkvk-heart-on) center/contain no-repeat;mask:var(--vkvk-heart-on) center/contain no-repeat}
 html.vkvk-site ytd-watch-metadata like-button-view-model button{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
   width:fit-content!important;
   min-width:0!important;
   max-width:none!important;
@@ -491,6 +496,7 @@ html.vkvk-site ytd-watch-metadata like-button-view-model button{
   gap:2px!important;
   overflow:visible!important
 }
+html.vkvk-site ytd-watch-metadata like-button-view-model button :is(.yt-spec-button-shape-next__button-text-content,span[role='text']){flex:none!important;margin-left:0!important;padding-left:0!important}
 html.vkvk-site ytd-watch-metadata like-button-view-model button svg{display:none!important}
 html.vkvk-site ytd-watch-metadata like-button-view-model button::before{
   content:'';

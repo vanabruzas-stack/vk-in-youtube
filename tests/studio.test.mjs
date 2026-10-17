@@ -73,7 +73,7 @@ test('Studio shell keeps native navigation/upload and shows period statistics', 
         <ytcp-comments>
           <ytcp-comment>
             <div id="author-thumbnail"></div>
-            <div id="body"><yt-formatted-string id="comment-text">не пригото слушать такой голос</yt-formatted-string></div>
+            <div id="body"><div id="content"><yt-formatted-string id="comment-text">не пригото слушать такой голос</yt-formatted-string></div></div>
             <div id="video-thumbnail"></div>
           </ytcp-comment>
         </ytcp-comments>`;
@@ -83,6 +83,7 @@ test('Studio shell keeps native navigation/upload and shows period statistics', 
     assert.notEqual(await page.locator('ytcp-comment').evaluate(node => getComputedStyle(node).display), 'grid');
     assert.equal(await page.locator('ytcp-comment').evaluate(node => getComputedStyle(node).maxWidth), 'none');
     assert.equal(await page.locator('ytcp-comment #body').evaluate(node => getComputedStyle(node).textAlign), 'left');
+    assert.equal(await page.locator('ytcp-comment #content').evaluate(node => node.style.left), '');
     assert.equal(await page.locator('#main-content > *').evaluate(node => getComputedStyle(node).marginLeft), '0px');
     await page.evaluate(() => {
       const main = document.querySelector('#main-content');

@@ -157,6 +157,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
       document.dispatchEvent(new Event('yt-navigate-finish'));
     });
     await page.waitForFunction(() => document.documentElement.dataset.vkvkRoute === 'watch');
+    assert.equal(await page.locator('.vkvk-nav[data-route="live"] > svg').last().evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.locator('ytd-watch-flexy #secondary').evaluate(node => Math.round(node.getBoundingClientRect().width)), 344);
     assert.equal(await page.locator('dislike-button-view-model').evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.locator('.ytp-play-progress').evaluate(node => getComputedStyle(node).backgroundColor), 'rgb(38, 136, 235)');
@@ -191,6 +192,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     await page.locator('.vkvk-desc-toggle').evaluate(node => node.click());
     assert.equal(await page.locator('.vkvk-desc-toggle').innerText(), 'Показать полностью');
     assert.match(await page.locator('like-button-view-model .yt-spec-button-shape-next__button-text-content').innerText(), /^\d+ тыс\.$/);
+    assert.equal(await page.locator('like-button-view-model button').evaluate(node => getComputedStyle(node).justifyContent), 'flex-start');
     assert.equal(await page.locator('like-button-view-model button').evaluate(node => getComputedStyle(node, '::before').content), '""');
     assert.match(await page.locator('like-button-view-model button').evaluate(node => getComputedStyle(node, '::before').webkitMaskImage || getComputedStyle(node, '::before').maskImage), /zm\.274|1\.794/);
     await page.locator('like-button-view-model button').evaluate(node => node.setAttribute('aria-pressed', 'true'));
