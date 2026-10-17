@@ -172,8 +172,6 @@ html.vkvk-studio[data-vkvk-route='overview'] :is(ytcd-card,ytcp-dashboard-card){
 html.vkvk-studio[data-vkvk-route='content'] :is(ytcp-video-row,ytcp-video-list-row,#video-title,.video-title){position:static!important;left:auto!important;transform:none!important;text-indent:0!important;margin-left:0!important}
 html.vkvk-studio[data-vkvk-route='content'] :is(ytcp-video-row,ytcp-video-list-row){min-height:72px!important;background:transparent!important}
 html.vkvk-studio[data-vkvk-route='content'] :is(ytcp-video-row,ytcp-video-list-row):hover{background:#242426!important}
-html.vkvk-studio[data-vkvk-route='content'] :is(ytcp-video-row,ytcp-video-list-row) :is(ytcp-video-thumbnail,#video-thumbnail,.video-thumbnail){overflow:hidden;border-radius:6px!important}
-html.vkvk-studio[data-vkvk-route='content'] :is(ytcp-video-row,ytcp-video-list-row) :is(ytcp-video-thumbnail,#video-thumbnail,.video-thumbnail) img{display:block;width:100%!important;height:100%!important;min-width:0!important;object-fit:cover!important;border-radius:inherit!important}
 html.vkvk-studio[data-vkvk-route='analytics'] .vkvk-studio-surface>*{max-width:1120px!important}
 html.vkvk-studio[data-vkvk-route='analytics'] :is(yta-key-metric-card,yta-key-metric-block,yta-line-chart,yta-card,yta-chart-card){background:#222223!important;border:1px solid rgba(255,255,255,.045)!important;border-radius:8px!important}
 @media(min-width:1500px){
