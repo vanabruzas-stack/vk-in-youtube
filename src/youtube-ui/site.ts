@@ -253,6 +253,22 @@ function nudgePlayerLayout(): void {
   }
 }
 
+function syncPlayerAspect(): void {
+  if (contentRoute(location.pathname) !== 'watch') return;
+  const video = document.querySelector<HTMLVideoElement>('#movie_player video.html5-main-video');
+  if (!video) return;
+  const update = () => {
+    const ratio = video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 16 / 9;
+    document.documentElement.style.setProperty('--vkvk-video-ratio', String(ratio >= 0.5 && ratio <= 3.5 ? ratio : 16 / 9));
+  };
+  if (video.dataset.vkvkAspectWatch !== '1') {
+    video.dataset.vkvkAspectWatch = '1';
+    video.addEventListener('loadedmetadata', update);
+    video.addEventListener('resize', update);
+  }
+  update();
+}
+
 function skipNativeAd(): boolean {
   const skip = document.querySelector<HTMLElement>(
     '.ytp-skip-ad-button, .ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-ad-skip-button-container button, button.ytp-skip-ad-button'
@@ -599,7 +615,7 @@ function localizeYouTubeLabels(): void {
   }
 }
 
-const deniedPlayerSetting = /постоянн.{0,12}\s+уровен|стабильн.{0,12}\s+(?:громк|звук)|усилен.{0,12}\s+голос|профессиональн.{0,12}\s+освещ|автовыключ|кинорежим|театрал|широкий экран|аннотац|ambient|stable volume|voice boost|sleep timer|professional light|annotations?|cinema|theater/i;
+const deniedPlayerSetting = /усилен.{0,12}\s+голос|профессиональн.{0,12}\s+освещ|автовыключ|кинорежим|театрал|широкий экран|аннотац|ambient|voice boost|sleep timer|professional light|annotations?|cinema|theater/i;
 
 function filterPlayerSettings(): void {
   const roots: ParentNode[] = [document];
@@ -634,6 +650,7 @@ function decorateWatchPlayer(): void {
     panel.toggleAttribute('data-vkvk-invalid', /\bNaN\b/.test(text) || (!hasPlaylist && !hasVideos));
   }
   filterPlayerSettings();
+  syncPlayerAspect();
   nudgePlayerLayout();
   decorateAdSkip();
 }
@@ -779,22 +796,20 @@ function stabilizeWatchViews(): void {
   let line = metadata.querySelector<HTMLElement>('.vkvk-watch-views');
   if (!line) line = element('div', 'vkvk-watch-views');
   if (line.parentElement !== box.parentElement || line.nextElementSibling !== box) box.before(line);
-  if (!box.hasAttribute('data-vkvk-desc-aligned') && !document.documentElement.classList.contains('vkvk-fullscreen')) {
+  if (!document.documentElement.classList.contains('vkvk-fullscreen')) {
     const anchor = metadata.querySelector<HTMLElement>('#title') || metadata;
     const anchorLeft = anchor.getBoundingClientRect().left;
     const align = (node: HTMLElement) => {
       const offset = Math.round(node.getBoundingClientRect().left - anchorLeft);
-      if (offset <= 24 || offset >= 240) return false;
+      if (Math.abs(offset) <= 2 || Math.abs(offset) >= 240) return false;
       const margin = Number.parseFloat(getComputedStyle(node).marginLeft) || 0;
       const corrected = margin - offset;
       node.style.setProperty('margin-left', `${corrected}px`, 'important');
       node.style.setProperty('width', corrected < 0 ? `calc(100% + ${-corrected}px)` : '100%', 'important');
       return true;
     };
-    if (align(box)) {
-      align(line);
-      box.setAttribute('data-vkvk-desc-aligned', '');
-    }
+    align(box);
+    align(line);
   }
   const bits: string[] = [];
   let sawView = false;
@@ -991,10 +1006,19 @@ function clearDescBox(node: HTMLElement): void {
   node.classList.remove('vkvk-desc-text', 'vkvk-desc-skip');
   for (const property of ['display', 'width', 'margin', 'background', 'border', 'border-radius', 'padding', 'box-sizing']) node.style.removeProperty(property);
 }
+let expandedDescriptionVideo = '';
+let expandedDescription = false;
+const boundDescriptionToggles = new WeakSet<HTMLButtonElement>();
 function decorateDescriptions(): void {
   const metadata = document.querySelector('ytd-watch-metadata');
   const root = metadata?.querySelector<HTMLElement>('ytd-text-inline-expander, ytd-expandable-video-description-body-renderer, #description');
   if (!metadata || !root) return;
+  const videoKey = new URLSearchParams(location.search).get('v') || location.pathname;
+  if (expandedDescriptionVideo !== videoKey) {
+    expandedDescriptionVideo = videoKey;
+    expandedDescription = false;
+  }
+  root.classList.toggle('vkvk-desc-open', expandedDescription);
   const nodes: HTMLElement[] = [];
   deepEach(root, node => {
     if (!(node instanceof HTMLElement)) return;
@@ -1014,36 +1038,33 @@ function decorateDescriptions(): void {
     root.querySelectorAll('.vkvk-desc-toggle').forEach(node => node.remove());
     return;
   }
-  let parent: HTMLElement | null = body;
-  while (parent && parent !== metadata) {
-    if (parent.hasAttribute('hidden')) parent.removeAttribute('hidden');
-    parent = parent.parentElement;
-  }
   body.classList.add('vkvk-desc-text');
   body.classList.remove('vkvk-desc-skip');
   body.style.setProperty('display', 'block', 'important');
   body.style.setProperty('width', '100%', 'important');
   body.style.setProperty('margin', '0', 'important');
-  body.style.setProperty('background', '#2c2d2e', 'important');
-  body.style.setProperty('border', '1px solid #6d7074', 'important');
-  body.style.setProperty('border-radius', '12px', 'important');
-  body.style.setProperty('padding', '12px 14px', 'important');
+  for (const property of ['background', 'border', 'border-radius', 'padding']) body.style.removeProperty(property);
   body.style.setProperty('box-sizing', 'border-box', 'important');
   let toggle = root.querySelector<HTMLButtonElement>('.vkvk-desc-toggle');
   root.querySelectorAll<HTMLButtonElement>('.vkvk-desc-toggle').forEach((extra, index) => { if (index > 0) extra.remove(); });
   if (!toggle) {
     toggle = element('button', 'vkvk-desc-toggle', 'Показать полностью');
     toggle.type = 'button';
+  }
+  if (!boundDescriptionToggles.has(toggle)) {
+    boundDescriptionToggles.add(toggle);
     toggle.addEventListener('click', event => {
       event.preventDefault();
       event.stopPropagation();
-      const open = root.classList.toggle('vkvk-desc-open');
-      const nativeToggle = root.querySelector<HTMLElement>(open ? '#expand' : '#collapse')
-        || metadata.querySelector<HTMLElement>(open ? '#expand' : '#collapse');
+      expandedDescription = !expandedDescription;
+      root.classList.toggle('vkvk-desc-open', expandedDescription);
+      const nativeToggle = root.querySelector<HTMLElement>(expandedDescription ? '#expand' : '#collapse')
+        || metadata.querySelector<HTMLElement>(expandedDescription ? '#expand' : '#collapse');
       nativeToggle?.click();
-      toggle!.textContent = open ? 'Свернуть' : 'Показать полностью';
+      toggle!.textContent = expandedDescription ? 'Свернуть' : 'Показать полностью';
     });
   }
+  toggle.textContent = expandedDescription ? 'Свернуть' : 'Показать полностью';
   if (body.nextElementSibling !== toggle) body.after(toggle);
 }
 const otherHeaderStyle = `

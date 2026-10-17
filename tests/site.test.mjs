@@ -139,7 +139,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
           <ytd-playlist-panel-renderer id="invalid-playlist" style="display:block">NaN / NaN</ytd-playlist-panel-renderer>
           <yt-related-chip-cloud-renderer><button role="tab"></button><button role="tab"></button><button role="tab"></button></yt-related-chip-cloud-renderer>
         </div></div></div>
-        <div class="ytp-settings-menu"><div class="ytp-menuitem">Профессиональное освещение</div><div class="ytp-menuitem">Качество</div><div class="ytp-menuitem">Звуковая дорожка</div></div>
+        <div class="ytp-settings-menu"><div class="ytp-menuitem">Профессиональное освещение</div><div class="ytp-menuitem">Качество</div><div class="ytp-menuitem">Постоянная громкость</div><div class="ytp-menuitem">Звуковая дорожка</div></div>
         <ytd-watch-metadata>
           <div id="owner"><a href="/@РЫЖАЯМОРДА">РЫЖАЯ МОРДА</a></div>
           <div id="owner-sub-count">4,12 тыс. подписчиков</div>
@@ -179,6 +179,12 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     assert.equal(await page.locator('#body-text').evaluate(node => node.classList.contains('vkvk-desc-text')), true);
     assert.equal(await page.locator('#view-line').evaluate(node => node.classList.contains('vkvk-desc-skip')), true);
     assert.equal(await page.locator('#body-text').evaluate(node => node.nextElementSibling?.classList.contains('vkvk-desc-toggle')), true);
+    assert.equal(await page.locator('#description').evaluate(node => getComputedStyle(node).backgroundColor), 'rgb(44, 45, 46)');
+    await page.locator('.vkvk-desc-toggle').click();
+    assert.equal(await page.locator('.vkvk-desc-toggle').innerText(), 'Свернуть');
+    assert.equal(await page.locator('#body-text').evaluate(node => getComputedStyle(node).maxHeight), 'none');
+    await page.locator('.vkvk-desc-toggle').evaluate(node => node.click());
+    assert.equal(await page.locator('.vkvk-desc-toggle').innerText(), 'Показать полностью');
     assert.match(await page.locator('like-button-view-model .yt-spec-button-shape-next__button-text-content').innerText(), /^\d+ тыс\.$/);
     assert.equal(await page.locator('like-button-view-model button').evaluate(node => getComputedStyle(node, '::before').content), '""');
     assert.match(await page.locator('like-button-view-model button').evaluate(node => getComputedStyle(node, '::before').webkitMaskImage || getComputedStyle(node, '::before').maskImage), /zm\.274|1\.794/);
@@ -212,6 +218,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     assert.equal(await page.locator('.ytp-miniplayer-button').evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.locator('.ytp-menuitem').first().evaluate(node => getComputedStyle(node).display), 'none');
     assert.notEqual(await page.locator('.ytp-menuitem').nth(1).evaluate(node => getComputedStyle(node).display), 'none');
+    assert.notEqual(await page.locator('.ytp-menuitem').nth(2).evaluate(node => getComputedStyle(node).display), 'none');
     assert.notEqual(await page.locator('.ytp-menuitem').last().evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.evaluate(() => {
       const event = new KeyboardEvent('keydown', { key: 't', code: 'KeyT', bubbles: true, cancelable: true });
@@ -220,6 +227,25 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     await page.locator('.vkvk-header .vkvk-icon-button').first().click();
     assert.equal(await page.locator('html').evaluate(node => node.classList.contains('vkvk-watch-side-expanded')), true);
     assert.deepEqual(await page.evaluate(() => window.storageWrites.at(-1)), { sideExpanded: true });
+    await page.evaluate(() => {
+      const frame = document.createElement('div');
+      frame.id = 'player';
+      frame.innerHTML = '<div id="player-container-outer"><div id="player-container-inner"><ytd-player><div id="movie_player" class="html5-video-player"><div class="html5-video-container"><video class="html5-main-video"></video></div></div></ytd-player></div></div>';
+      document.querySelector('ytd-watch-flexy #primary')?.prepend(frame);
+      const video = frame.querySelector('video');
+      Object.defineProperty(video, 'videoWidth', { configurable: true, value: 1920 });
+      Object.defineProperty(video, 'videoHeight', { configurable: true, value: 1080 });
+      document.dispatchEvent(new Event('yt-navigate-finish'));
+    });
+    await page.waitForFunction(() => Math.abs(document.querySelector('#player-container-inner')?.getBoundingClientRect().width / document.querySelector('#player-container-inner')?.getBoundingClientRect().height - 16 / 9) < .02);
+    await page.evaluate(() => {
+      const video = document.querySelector('#movie_player video');
+      Object.defineProperty(video, 'videoWidth', { configurable: true, value: 640 });
+      Object.defineProperty(video, 'videoHeight', { configurable: true, value: 480 });
+      video.dispatchEvent(new Event('resize'));
+    });
+    await page.waitForFunction(() => Math.abs(document.querySelector('#player-container-inner')?.getBoundingClientRect().width / document.querySelector('#player-container-inner')?.getBoundingClientRect().height - 4 / 3) < .02);
+    await page.locator('#player').evaluate(node => node.remove());
     await page.evaluate(() => {
       const player = document.createElement('div');
       player.id = 'movie_player';

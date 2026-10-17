@@ -29,9 +29,16 @@ test('watch views stay above description when YouTube puts them inside the expan
     assert.match(await page.locator('.vkvk-watch-views').innerText(), /123 просмотра · 25 сент\. 2026 г\./);
     assert.equal(await page.locator('#inside-views').evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.locator('ytd-watch-info-text').evaluate(node => getComputedStyle(node).display), 'none');
-    assert.equal(await page.locator('#body-text').evaluate(node => getComputedStyle(node).borderTopStyle), 'solid');
+    assert.equal(await page.locator('#body-text').evaluate(node => getComputedStyle(node).borderTopStyle), 'none');
+    assert.equal(await page.locator('#description').evaluate(node => getComputedStyle(node).backgroundColor), 'rgb(44, 45, 46)');
     await page.locator('.vkvk-desc-toggle').click();
     assert.equal(await page.locator('#expanded-text').evaluate(node => node.hidden), false);
+    await page.evaluate(() => {
+      const expander = document.querySelector('ytd-text-inline-expander');
+      expander.replaceWith(expander.cloneNode(true));
+      document.dispatchEvent(new Event('yt-navigate-finish'));
+    });
+    await page.waitForFunction(() => document.querySelector('.vkvk-desc-toggle')?.textContent === 'Свернуть');
     await page.locator('.vkvk-desc-toggle').click();
     assert.equal(await page.locator('#expanded-text').evaluate(node => node.hidden), true);
     const alignment = await page.evaluate(() => {
