@@ -15,7 +15,7 @@ test('watch views stay above description when YouTube puts them inside the expan
           <yt-attributed-string id="body-text">Это текст описания ролика. <span id="expanded-text" hidden>Дополнительное описание.</span></yt-attributed-string>
           <button id="expand" onclick="document.querySelector('#expanded-text').hidden=false">Показать ещё</button>
           <button id="collapse" onclick="document.querySelector('#expanded-text').hidden=true">Свернуть</button>
-        </ytd-text-inline-expander></div></ytd-watch-metadata>
+        </ytd-text-inline-expander><ytd-structured-description-content-renderer><h2>Как это было сделано</h2><yt-attributed-string id="dub-details">Звуковые дорожки на некоторых языках были созданы автоматически, и этот длинный текст не является описанием ролика.</yt-attributed-string></ytd-structured-description-content-renderer></div></ytd-watch-metadata>
       </ytd-watch-flexy></ytd-page-manager></ytd-app></body></html>`,
     }));
     await page.goto('https://www.youtube.com/watch?v=12345678901');
@@ -30,6 +30,9 @@ test('watch views stay above description when YouTube puts them inside the expan
     assert.equal(await page.locator('#inside-views').evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.locator('ytd-watch-info-text').evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.locator('#body-text').evaluate(node => getComputedStyle(node).borderTopStyle), 'none');
+    assert.equal(await page.locator('#body-text').evaluate(node => node.classList.contains('vkvk-desc-text')), true);
+    assert.equal(await page.locator('#dub-details').evaluate(node => node.classList.contains('vkvk-desc-text')), false);
+    assert.equal(await page.locator('#dub-details').evaluate(node => getComputedStyle(node).display), 'inline');
     assert.equal(await page.locator('#description').evaluate(node => getComputedStyle(node).backgroundColor), 'rgb(44, 45, 46)');
     await page.locator('.vkvk-desc-toggle').click();
     assert.equal(await page.locator('#expanded-text').evaluate(node => node.hidden), false);

@@ -283,9 +283,9 @@ html.vkvk-site :is(ytd-item-section-renderer #header,ytd-shelf-renderer #title-c
 
 /* Watch page. */
 html.vkvk-site ytd-watch-flexy{
-  --ytd-watch-flexy-sidebar-width:300px;
-  --ytd-watch-flexy-sidebar-min-width:300px;
-  --ytd-watch-flexy-sidebar-max-width:300px;
+  --ytd-watch-flexy-sidebar-width:344px;
+  --ytd-watch-flexy-sidebar-min-width:344px;
+  --ytd-watch-flexy-sidebar-max-width:344px;
   min-width:0!important
 }
 html.vkvk-site ytd-watch-flexy #columns{
@@ -307,9 +307,9 @@ html.vkvk-site ytd-watch-flexy #secondary,html.vkvk-site ytd-watch-flexy #second
   left:auto!important;
   float:none!important;
   transform:none!important;
-  width:300px!important;
-  min-width:300px!important;
-  max-width:300px!important;
+  width:344px!important;
+  min-width:344px!important;
+  max-width:344px!important;
   height:auto!important;
   max-height:none!important;
   padding-left:8px!important
@@ -321,7 +321,7 @@ html.vkvk-site ytd-watch-flexy #primary,html.vkvk-site ytd-watch-flexy #primary-
   flex:1 1 auto!important;
   width:auto!important;
   min-width:0!important;
-  max-width:calc(100% - 300px)!important;
+  max-width:calc(100% - 344px)!important;
   padding-right:8px!important
 }
 html.vkvk-site:not(.vkvk-fullscreen):not(:has(.ytp-fullscreen)) ytd-watch-flexy :is(#full-bleed-container,#player-full-bleed-container,#full-bleed-container #player){
@@ -354,7 +354,7 @@ html.vkvk-site:not(.vkvk-fullscreen):not(:has(.ytp-fullscreen)) ytd-watch-flexy 
   overflow:hidden!important;
   background:#000!important
 }
-html.vkvk-site ytd-watch-flexy #related,html.vkvk-site ytd-watch-flexy #related[hidden],html.vkvk-site ytd-watch-flexy ytd-watch-next-secondary-results-renderer,html.vkvk-site ytd-watch-flexy ytd-watch-next-secondary-results-renderer[hidden],html.vkvk-site ytd-watch-flexy #items.ytd-watch-next-secondary-results-renderer{
+html.vkvk-site ytd-watch-flexy #related:not([hidden]),html.vkvk-site ytd-watch-flexy ytd-watch-next-secondary-results-renderer:not([hidden]),html.vkvk-site ytd-watch-flexy #items.ytd-watch-next-secondary-results-renderer:not([hidden]){
   display:block!important;
   visibility:visible!important;
   opacity:1!important;
@@ -362,13 +362,15 @@ html.vkvk-site ytd-watch-flexy #related,html.vkvk-site ytd-watch-flexy #related[
   max-height:none!important;
   overflow:visible!important
 }
-html.vkvk-site ytd-watch-flexy yt-related-chip-cloud-renderer{display:flex!important}
+html.vkvk-site ytd-watch-flexy yt-related-chip-cloud-renderer:not([hidden]):not(.vkvk-duplicate-chips){display:flex!important}
 html.vkvk-site ytd-watch-flexy :is(#secondary-inner,#related,ytd-watch-next-secondary-results-renderer,#items.ytd-watch-next-secondary-results-renderer){
   display:flex!important;
   flex-direction:column!important;
   align-items:stretch!important;
   gap:0!important
 }
+html.vkvk-site ytd-watch-flexy #secondary :is(#related,ytd-watch-next-secondary-results-renderer,yt-related-chip-cloud-renderer)[hidden],
+html.vkvk-site ytd-watch-flexy #secondary yt-related-chip-cloud-renderer.vkvk-duplicate-chips{display:none!important}
 html.vkvk-site ytd-watch-flexy #secondary :is(ytd-compact-video-renderer,yt-lockup-view-model,.yt-lockup-view-model){
   display:flex!important;
   flex-direction:row!important;
@@ -438,7 +440,7 @@ html.vkvk-site ytd-playlist-panel-video-renderer,
 html.vkvk-site ytd-playlist-video-renderer{display:flex!important;align-items:center!important;gap:8px!important}
 html.vkvk-site :is(ytd-playlist-panel-video-renderer,ytd-playlist-video-renderer) :is(#thumbnail,ytd-thumbnail){width:112px!important;min-width:112px!important;max-width:112px!important;margin:0!important;flex:none!important}
 html.vkvk-site :is(ytd-playlist-panel-video-renderer,ytd-playlist-video-renderer) :is(#meta,#container,.yt-lockup-metadata){margin:0!important;padding:0!important;min-width:0!important}
-html.vkvk-site ytd-watch-flexy #secondary yt-related-chip-cloud-renderer{
+html.vkvk-site ytd-watch-flexy #secondary yt-related-chip-cloud-renderer:not([hidden]):not(.vkvk-duplicate-chips){
   display:flex!important;
   flex-direction:row!important;
   flex-wrap:wrap!important;
@@ -569,13 +571,15 @@ html.vkvk-site[data-vkvk-route='watch'] ytd-watch-metadata #description:has(.vkv
   box-sizing:border-box!important;
   width:100%!important;
   max-width:100%!important;
-  padding:12px 14px!important;
+  padding:16px 24px!important;
   background:#2c2d2e!important;
   border:0!important;
   border-radius:8px!important
 }
-html.vkvk-site .vkvk-desc-toggle{display:inline-flex;margin:8px 0 0;padding:0;border:0;background:none;color:#71aaeb;font:500 13px/18px VKLocal,Roboto,Arial,sans-serif;cursor:pointer}
-html.vkvk-site ytd-watch-metadata :is(ytd-structured-description-content-renderer,ytd-video-description-infocards-section-renderer){margin-top:12px!important}
+html.vkvk-site .vkvk-desc-toggle{display:inline-flex;margin:12px 0 0;padding:0;border:0;background:none;color:#71aaeb;font:500 13px/18px VKLocal,Roboto,Arial,sans-serif;cursor:pointer}
+html.vkvk-site ytd-watch-metadata :is(ytd-structured-description-content-renderer,ytd-video-description-infocards-section-renderer){margin-top:24px!important}
+html.vkvk-site ytd-watch-metadata #description :is(ytd-structured-description-content-renderer,ytd-video-description-infocards-section-renderer){background:transparent!important;border:0!important;box-shadow:none!important}
+html.vkvk-site ytd-watch-metadata #description :is(ytd-structured-description-content-renderer,ytd-video-description-infocards-section-renderer) :is(h2,h3,#title){font:600 20px/26px VKLocal,Roboto,Arial,sans-serif!important;color:var(--vk-text)!important}
 html.vkvk-site :is(ytd-watch-metadata,ytd-comments) :is(.yt-spec-button-shape-next--tonal,.ytSpecButtonShapeNextTonal){
   border:1px solid #3a3b3c!important
 }
@@ -1253,7 +1257,7 @@ html.vkvk-site[data-vkvk-route='shorts'] ytd-reel-video-renderer :is(#actions,.r
 html.vkvk-site :is(#cinematics,#cinematics-container,.ytp-cairo-refresh-signature-moments){display:none!important}
 html.vkvk-site[data-vkvk-route='watch'] ytd-watch-flexy #columns{margin:0!important}
 html.vkvk-site[data-vkvk-route='watch'] ytd-watch-flexy #primary{
-  max-width:calc(100% - 300px)!important
+  max-width:calc(100% - 344px)!important
 }
 html.vkvk-site[data-vkvk-route='watch'] ytd-watch-flexy #primary-inner{
   width:100%!important;

@@ -1024,6 +1024,7 @@ function decorateDescriptions(): void {
     if (!(node instanceof HTMLElement)) return;
     if (!node.matches('yt-attributed-string, .yt-core-attributed-string, #plain-snippet-text, #attributed-snippet-text, #description-text')) return;
     if (node.closest('.vkvk-watch-views, .vkvk-desc-toggle, button')) return;
+    if (node.closest('ytd-structured-description-content-renderer,ytd-video-description-infocards-section-renderer')) return;
     nodes.push(node);
   });
   const scored = nodes.map(node => ({ node, text: (node.innerText || node.textContent || '').replace(/\s+/g, ' ').trim() })).filter(item => item.text);
@@ -1566,12 +1567,18 @@ function renderWatchHeading(): void {
     heading.append(all);
   }
   const playlist = host.querySelector<HTMLElement>('ytd-playlist-panel-renderer:not([hidden]):not([data-vkvk-invalid]),#playlist:not([hidden])');
-  const related = host.querySelector<HTMLElement>('#related,ytd-watch-next-secondary-results-renderer,yt-related-chip-cloud-renderer');
+  const related = [...host.querySelectorAll<HTMLElement>('#related,ytd-watch-next-secondary-results-renderer,yt-related-chip-cloud-renderer')]
+    .find(node => !node.hidden && !node.closest('[hidden]'));
   if (related) related.before(heading);
   else if (playlist) playlist.after(heading);
   else if (!heading.isConnected) host.append(heading);
-  const chips = host.querySelector<HTMLElement>('yt-related-chip-cloud-renderer');
-  if (chips && chips.previousElementSibling !== heading) heading.after(chips);
+  // Keep YouTube's chip cloud inside its native renderer. Moving it out makes
+  // YouTube recreate the cloud on the next update, leaving duplicate rows.
+  const clouds = [...host.querySelectorAll<HTMLElement>('yt-related-chip-cloud-renderer')];
+  const visibleClouds = clouds.filter(cloud => !cloud.hidden && !cloud.closest('[hidden]'));
+  const activeCloud = visibleClouds.find(cloud => cloud.closest('#related,ytd-watch-next-secondary-results-renderer'))
+    || visibleClouds[0];
+  clouds.forEach(cloud => cloud.classList.toggle('vkvk-duplicate-chips', cloud !== activeCloud));
   const markAuthor = (root: ParentNode) => {
     root.querySelectorAll<HTMLElement>('button,yt-chip-cloud-chip-renderer,chip-shape').forEach(node => {
       const label = node.textContent?.replace(/\s+/g, ' ').trim() || '';

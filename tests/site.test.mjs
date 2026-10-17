@@ -137,7 +137,9 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
         <div id="secondary"><div id="secondary-inner">
           <ytd-playlist-panel-renderer style="display:block"><div id="header">Джем – тест</div><div id="items"><a href="/watch?v=98765432109">Видео</a></div></ytd-playlist-panel-renderer>
           <ytd-playlist-panel-renderer id="invalid-playlist" style="display:block">NaN / NaN</ytd-playlist-panel-renderer>
-          <yt-related-chip-cloud-renderer><button role="tab"></button><button role="tab"></button><button role="tab"></button></yt-related-chip-cloud-renderer>
+          <div id="related"><yt-related-chip-cloud-renderer><button role="tab">Все видео</button><button role="tab">Автор: Сергей Орлов</button></yt-related-chip-cloud-renderer></div>
+          <yt-related-chip-cloud-renderer id="stale-chips"><button role="tab">Все видео</button><button role="tab">Автор: Сергей Орлов</button></yt-related-chip-cloud-renderer>
+          <yt-related-chip-cloud-renderer id="hidden-chips" hidden><button role="tab">Скрытый фильтр</button></yt-related-chip-cloud-renderer>
         </div></div></div>
         <div class="ytp-settings-menu"><div class="ytp-menuitem">Профессиональное освещение</div><div class="ytp-menuitem">Качество</div><div class="ytp-menuitem">Постоянная громкость</div><div class="ytp-menuitem">Звуковая дорожка</div></div>
         <ytd-watch-metadata>
@@ -155,7 +157,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
       document.dispatchEvent(new Event('yt-navigate-finish'));
     });
     await page.waitForFunction(() => document.documentElement.dataset.vkvkRoute === 'watch');
-    assert.equal(await page.locator('ytd-watch-flexy #secondary').evaluate(node => Math.round(node.getBoundingClientRect().width)), 300);
+    assert.equal(await page.locator('ytd-watch-flexy #secondary').evaluate(node => Math.round(node.getBoundingClientRect().width)), 344);
     assert.equal(await page.locator('dislike-button-view-model').evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.locator('.ytp-play-progress').evaluate(node => getComputedStyle(node).backgroundColor), 'rgb(38, 136, 235)');
     assert.equal(await page.locator('ytd-playlist-panel-renderer').first().evaluate(node => Math.round(node.getBoundingClientRect().height)), 286);
@@ -167,7 +169,10 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
       const playlist = document.querySelector('ytd-playlist-panel-renderer');
       return Boolean(heading && playlist && (playlist.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING));
     }), 'related heading stays under the playlist, not over the player');
-    assert.equal(await page.locator('yt-related-chip-cloud-renderer').evaluate(node => getComputedStyle(node).display), 'flex');
+    assert.equal(await page.locator('#related yt-related-chip-cloud-renderer').evaluate(node => getComputedStyle(node).display), 'flex');
+    assert.equal(await page.locator('#related yt-related-chip-cloud-renderer').evaluate(node => node.parentElement?.id), 'related');
+    assert.equal(await page.locator('#stale-chips').evaluate(node => getComputedStyle(node).display), 'none');
+    assert.equal(await page.locator('#hidden-chips').evaluate(node => getComputedStyle(node).display), 'none');
     assert.match(await page.locator('#owner-sub-count').innerText(), /4,12 млн/);
     assert.match(await page.locator('.vkvk-watch-views').innerText(), /^62 тыс\. просмотров · 23 авг\. 2026 г\.$/);
     assert.equal(await page.locator('#original-views').evaluate(node => getComputedStyle(node).width), '1px');
