@@ -636,6 +636,17 @@ function filterPlayerSettings(): void {
   }
 }
 
+function arrangePlayerControls(): void {
+  const player = document.querySelector<HTMLElement>('#movie_player');
+  const left = player?.querySelector<HTMLElement>('.ytp-left-controls');
+  const right = player?.querySelector<HTMLElement>('.ytp-right-controls');
+  const volume = left?.querySelector<HTMLElement>('.ytp-volume-area');
+  if (!left || !right || !volume) return;
+  const autoplay = right.querySelector<HTMLElement>('.ytp-autonav-toggle-button-container, .ytp-autonav-toggle-button');
+  if (autoplay) autoplay.after(volume);
+  else right.prepend(volume);
+}
+
 function decorateWatchPlayer(): void {
   if (contentRoute(location.pathname) !== 'watch') return;
   const flexy = document.querySelector<HTMLElement>('ytd-watch-flexy');
@@ -650,6 +661,7 @@ function decorateWatchPlayer(): void {
     panel.toggleAttribute('data-vkvk-invalid', /\bNaN\b/.test(text) || (!hasPlaylist && !hasVideos));
   }
   filterPlayerSettings();
+  arrangePlayerControls();
   syncPlayerAspect();
   nudgePlayerLayout();
   decorateAdSkip();

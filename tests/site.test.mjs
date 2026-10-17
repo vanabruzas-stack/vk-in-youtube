@@ -239,7 +239,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
       frame.id = 'player';
       frame.innerHTML = `<div id="player-container-outer"><div id="player-container-inner"><ytd-player><div id="movie_player" class="html5-video-player">
         <div class="html5-video-container"><video class="html5-main-video"></video></div>
-        <div class="ytp-chrome-bottom"><div class="ytp-progress-bar-container"></div><div class="ytp-chrome-controls"><div class="ytp-left-controls"><button class="ytp-button"></button><span class="ytp-time-display">0:01 / 2:52:23</span></div><div class="ytp-right-controls"><button class="ytp-button"></button></div></div></div>
+        <div class="ytp-chrome-bottom" style="position:absolute;bottom:0;left:12px;right:12px;height:48px"><div class="ytp-progress-bar-container"></div><div class="ytp-chrome-controls"><div class="ytp-left-controls"><button class="ytp-button ytp-play-button"><svg></svg></button><button class="ytp-button ytp-next-button"><svg></svg></button><div class="ytp-volume-area"><button class="ytp-button ytp-mute-button"><svg></svg></button><div class="ytp-volume-panel"></div></div><span class="ytp-time-display">0:01 / 2:52:23</span></div><div class="ytp-right-controls"><div class="ytp-autonav-toggle-button-container"></div><button class="ytp-button ytp-subtitles-button"><svg></svg></button><button class="ytp-button ytp-settings-button"><svg></svg></button><button class="ytp-button ytp-miniplayer-button"><svg></svg></button><button class="ytp-button ytp-fullscreen-button"><svg></svg></button><button class="ytp-button ytp-remote-button"><svg></svg></button></div></div></div>
         <div class="ytp-settings-menu"></div><div class="ytp-endscreen-content"><div class="ytp-ce-element">Видео</div><div class="ytp-ce-element">Видео</div></div>
       </div></ytd-player></div></div>`;
       document.querySelector('ytd-watch-flexy #primary')?.prepend(frame);
@@ -250,9 +250,17 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     });
     await page.waitForFunction(() => Math.abs(document.querySelector('#player-container-inner')?.getBoundingClientRect().width / document.querySelector('#player-container-inner')?.getBoundingClientRect().height - 16 / 9) < .02);
     assert.equal(await page.locator('#movie_player .ytp-settings-menu').evaluate(node => Math.round(node.getBoundingClientRect().width)), 286);
-    assert.equal(await page.locator('#movie_player .ytp-chrome-bottom').evaluate(node => Math.round(node.getBoundingClientRect().height)), 56);
+    assert.equal(await page.locator('#movie_player .ytp-chrome-bottom').evaluate(node => Math.round(node.getBoundingClientRect().height)), 48, 'native toolbar height is preserved');
+    assert.equal(await page.locator('#movie_player .ytp-chrome-bottom').evaluate(node => Math.round(node.getBoundingClientRect().bottom - node.parentElement.getBoundingClientRect().bottom)), 0, 'native toolbar remains at the bottom');
+    assert.equal(await page.locator('#movie_player .ytp-right-controls .ytp-volume-area').count(), 1, 'volume moves to the right');
+    assert.deepEqual(await page.locator('#movie_player .ytp-right-controls').evaluate(node => Array.from(node.children, item => item.className)), [
+      'ytp-autonav-toggle-button-container', 'ytp-volume-area', 'ytp-button ytp-subtitles-button', 'ytp-button ytp-settings-button',
+      'ytp-button ytp-miniplayer-button', 'ytp-button ytp-fullscreen-button', 'ytp-button ytp-remote-button',
+    ]);
+    assert.match(await page.locator('#movie_player .ytp-play-button').evaluate(node => getComputedStyle(node, '::before').webkitMaskImage), /data:image\/svg\+xml/);
+    assert.notEqual(await page.locator('#movie_player .ytp-remote-button').evaluate(node => getComputedStyle(node).display), 'none', 'cast stays available');
     await page.locator('#movie_player').evaluate(node => node.classList.add('ended-mode'));
-    assert.equal(await page.locator('#movie_player .ytp-endscreen-content').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length), 4);
+    assert.notEqual(await page.locator('#movie_player .ytp-endscreen-content').evaluate(node => getComputedStyle(node).display), 'grid', 'the native end screen retains its layout');
     await page.locator('#movie_player').evaluate(node => node.classList.remove('ended-mode'));
     await page.evaluate(() => {
       const video = document.querySelector('#movie_player video');

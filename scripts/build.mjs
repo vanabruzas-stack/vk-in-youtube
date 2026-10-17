@@ -3,6 +3,7 @@ import { mkdir, copyFile, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 await import('./icons.mjs');
+const playerIconsCss = (await import('./player-icons.mjs')).default;
 const out = resolve('dist');
 const { version } = JSON.parse(await readFile(resolve('package.json'), 'utf8'));
 await mkdir(out, { recursive: true });
@@ -21,7 +22,7 @@ await build({
   sourcemap: false,
   logLevel: 'info',
 });
-await copyFile(resolve('src/youtube-ui/site.css'), resolve(out, 'site.css'));
+await writeFile(resolve(out, 'site.css'), `${await readFile(resolve('src/youtube-ui/site.css'), 'utf8')}\n${playerIconsCss}`);
 await copyFile(resolve('src/studio-ui/studio.css'), resolve(out, 'studio.css'));
 await copyFile(resolve('src/popup.css'), resolve(out, 'popup.css'));
 await copyFile(resolve('src/popup.html'), resolve(out, 'popup.html'));
