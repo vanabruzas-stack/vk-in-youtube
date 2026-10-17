@@ -630,7 +630,7 @@ function filterPlayerSettings(): void {
     if (root instanceof ShadowRoot && !root.querySelector('style[data-vkvk-player]')) {
       const style = document.createElement('style');
       style.dataset.vkvkPlayer = '';
-      style.textContent = '.ytp-menuitem[data-vkvk-hidden],.ytp-size-button,.ytp-miniplayer-button,.ytp-pip-button,.ytp-theater-mode-button{display:none!important}.ytp-settings-menu{width:420px!important;min-width:420px!important;max-width:420px!important;right:12px!important;left:auto!important}.ytp-menuitem-label,.ytp-menuitem-content{overflow:visible!important;text-overflow:clip!important;max-width:none!important}';
+      style.textContent = '.ytp-menuitem[data-vkvk-hidden],.ytp-size-button,.ytp-theater-mode-button{display:none!important}.ytp-settings-menu{width:286px!important;min-width:286px!important;max-width:286px!important;right:10px!important;left:auto!important}.ytp-menuitem-label,.ytp-menuitem-content{overflow:visible!important;text-overflow:clip!important;max-width:none!important}';
       root.append(style);
     }
   }
@@ -796,6 +796,10 @@ function stabilizeWatchViews(): void {
   let line = metadata.querySelector<HTMLElement>('.vkvk-watch-views');
   if (!line) line = element('div', 'vkvk-watch-views');
   if (line.parentElement !== box.parentElement || line.nextElementSibling !== box) box.before(line);
+  const details = box.parentElement;
+  if (details && getComputedStyle(details).display.includes('flex') && getComputedStyle(details).flexDirection.startsWith('row')) {
+    details.classList.add('vkvk-watch-details-stack');
+  }
   if (!document.documentElement.classList.contains('vkvk-fullscreen')) {
     const anchor = metadata.querySelector<HTMLElement>('#title') || metadata;
     const anchorLeft = anchor.getBoundingClientRect().left;

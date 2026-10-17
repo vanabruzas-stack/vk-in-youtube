@@ -222,7 +222,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     }), /16\.266 4z/);
     await page.waitForSelector('#vkvk-recsys-toast.vkvk-recsys-toast--show');
     assert.equal(await page.locator('.ytp-size-button').evaluate(node => getComputedStyle(node).display), 'none');
-    assert.equal(await page.locator('.ytp-miniplayer-button').evaluate(node => getComputedStyle(node).display), 'none');
+    assert.notEqual(await page.locator('.ytp-miniplayer-button').evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.locator('.ytp-menuitem').first().evaluate(node => getComputedStyle(node).display), 'none');
     assert.notEqual(await page.locator('.ytp-menuitem').nth(1).evaluate(node => getComputedStyle(node).display), 'none');
     assert.notEqual(await page.locator('.ytp-menuitem').nth(2).evaluate(node => getComputedStyle(node).display), 'none');
@@ -237,7 +237,11 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     await page.evaluate(() => {
       const frame = document.createElement('div');
       frame.id = 'player';
-      frame.innerHTML = '<div id="player-container-outer"><div id="player-container-inner"><ytd-player><div id="movie_player" class="html5-video-player"><div class="html5-video-container"><video class="html5-main-video"></video></div></div></ytd-player></div></div>';
+      frame.innerHTML = `<div id="player-container-outer"><div id="player-container-inner"><ytd-player><div id="movie_player" class="html5-video-player">
+        <div class="html5-video-container"><video class="html5-main-video"></video></div>
+        <div class="ytp-chrome-bottom"><div class="ytp-progress-bar-container"></div><div class="ytp-chrome-controls"><div class="ytp-left-controls"><button class="ytp-button"></button><span class="ytp-time-display">0:01 / 2:52:23</span></div><div class="ytp-right-controls"><button class="ytp-button"></button></div></div></div>
+        <div class="ytp-settings-menu"></div><div class="ytp-endscreen-content"><div class="ytp-ce-element">Видео</div><div class="ytp-ce-element">Видео</div></div>
+      </div></ytd-player></div></div>`;
       document.querySelector('ytd-watch-flexy #primary')?.prepend(frame);
       const video = frame.querySelector('video');
       Object.defineProperty(video, 'videoWidth', { configurable: true, value: 1920 });
@@ -245,6 +249,11 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
       document.dispatchEvent(new Event('yt-navigate-finish'));
     });
     await page.waitForFunction(() => Math.abs(document.querySelector('#player-container-inner')?.getBoundingClientRect().width / document.querySelector('#player-container-inner')?.getBoundingClientRect().height - 16 / 9) < .02);
+    assert.equal(await page.locator('#movie_player .ytp-settings-menu').evaluate(node => Math.round(node.getBoundingClientRect().width)), 286);
+    assert.equal(await page.locator('#movie_player .ytp-chrome-bottom').evaluate(node => Math.round(node.getBoundingClientRect().height)), 56);
+    await page.locator('#movie_player').evaluate(node => node.classList.add('ended-mode'));
+    assert.equal(await page.locator('#movie_player .ytp-endscreen-content').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length), 4);
+    await page.locator('#movie_player').evaluate(node => node.classList.remove('ended-mode'));
     await page.evaluate(() => {
       const video = document.querySelector('#movie_player video');
       Object.defineProperty(video, 'videoWidth', { configurable: true, value: 640 });

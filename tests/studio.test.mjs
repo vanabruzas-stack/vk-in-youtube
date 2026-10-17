@@ -86,6 +86,16 @@ test('Studio shell keeps native navigation/upload and shows period statistics', 
     assert.equal(await page.locator('ytcp-comment #content').evaluate(node => node.style.left), '');
     assert.equal(await page.locator('#main-content > *').evaluate(node => getComputedStyle(node).marginLeft), '0px');
     await page.evaluate(() => {
+      document.querySelector('ytcp-app').insertAdjacentHTML('beforeend', `
+        <ytcp-dialog role="dialog"><div id="content"><div class="end-screen-video" style="height:80px">Импортировать концовку из видео</div></div></ytcp-dialog>`);
+      document.dispatchEvent(new Event('yt-navigate-finish'));
+    });
+    await page.waitForFunction(() => document.documentElement.classList.contains('vkvk-modal-open'));
+    assert.equal(await page.locator('ytcp-dialog #content').evaluate(node => node.classList.contains('vkvk-studio-surface')), false);
+    assert.ok(await page.locator('ytcp-dialog #content').evaluate(node => node.getBoundingClientRect().height < 200));
+    assert.equal(await page.locator('ytcp-dialog #content').evaluate(node => getComputedStyle(node).overflowY), 'visible');
+    await page.locator('ytcp-dialog').evaluate(node => node.remove());
+    await page.evaluate(() => {
       const main = document.querySelector('#main-content');
       const filler = document.createElement('div');
       filler.style.height = '2400px';
