@@ -252,6 +252,13 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     assert.equal(await page.locator('#movie_player .ytp-settings-menu').evaluate(node => Math.round(node.getBoundingClientRect().width)), 286);
     assert.equal(await page.locator('#movie_player .ytp-chrome-bottom').evaluate(node => Math.round(node.getBoundingClientRect().height)), 48, 'native toolbar height is preserved');
     assert.equal(await page.locator('#movie_player .ytp-chrome-bottom').evaluate(node => Math.round(node.getBoundingClientRect().bottom - node.parentElement.getBoundingClientRect().bottom)), 0, 'native toolbar remains at the bottom');
+    await page.locator('#movie_player .ytp-time-display').evaluate(node => { node.style.background = 'rgba(255,255,255,.18)'; node.style.backdropFilter = 'blur(8px)'; });
+    await page.locator('#movie_player .ytp-play-button').evaluate(node => { node.style.background = 'rgba(255,255,255,.18)'; });
+    assert.deepEqual(await page.locator('#movie_player').evaluate(node => [
+      getComputedStyle(node.querySelector('.ytp-time-display')).backgroundColor,
+      getComputedStyle(node.querySelector('.ytp-time-display')).backdropFilter,
+      getComputedStyle(node.querySelector('.ytp-play-button')).backgroundColor,
+    ]), ['rgba(0, 0, 0, 0)', 'none', 'rgba(0, 0, 0, 0)'], 'timer and player buttons have no extra glass background');
     assert.equal(await page.locator('#movie_player .ytp-left-controls .ytp-volume-area').count(), 1, 'native volume stays in its original controls');
     assert.deepEqual(await page.locator('#movie_player .ytp-right-controls').evaluate(node => Array.from(node.children, item => item.className)), [
       'ytp-autonav-toggle-button-container', 'vkvk-volume-control', 'ytp-button ytp-subtitles-button', 'ytp-button ytp-settings-button',

@@ -626,6 +626,9 @@ html.vkvk-site[data-vkvk-route='watch'] .ytp-settings-menu{width:286px!important
    moves the seek bar over the picture and clips native controls. */
 html.vkvk-site[data-vkvk-route='watch'] #movie_player .ytp-chrome-bottom{background:linear-gradient(to bottom,transparent,#000 80%)!important}
 html.vkvk-site[data-vkvk-route='watch'] #movie_player .ytp-time-display{font-family:VKLocal,Roboto,Arial,sans-serif!important;color:#fff!important}
+/* The toolbar already darkens the video. Individual glass pills add a second
+   layer behind the timer and icons, unlike the supplied VK player reference. */
+html.vkvk-site[data-vkvk-route='watch'] #movie_player .ytp-chrome-controls :is(.ytp-button:not(.ytp-autonav-toggle-button),.ytp-time-display,.ytp-time-wrapper,.ytp-volume-area,.ytp-volume-panel,.vkvk-volume-control){background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-color:transparent!important}
 html.vkvk-site[data-vkvk-route='watch'] #movie_player[data-vkvk-volume='ready'] .ytp-left-controls :is(.ytp-volume-area,.ytp-mute-button,.ytp-volume-panel){display:none!important}
 html.vkvk-site[data-vkvk-route='watch'] #movie_player .ytp-right-controls>.vkvk-volume-control{display:inline-flex!important;float:left!important;align-items:center!important;justify-content:center!important;gap:2px;position:relative!important;width:102px!important;min-width:102px!important;max-width:102px!important;height:100%!important;margin:0!important;padding:0 2px!important;overflow:visible!important;box-sizing:border-box!important;vertical-align:top!important}
 html.vkvk-site[data-vkvk-route='watch'] #movie_player .vkvk-volume-toggle{position:relative!important;display:block!important;flex:none!important;width:40px!important;height:40px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;cursor:pointer!important}
