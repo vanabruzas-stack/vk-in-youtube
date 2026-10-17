@@ -252,27 +252,30 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     assert.equal(await page.locator('#movie_player .ytp-settings-menu').evaluate(node => Math.round(node.getBoundingClientRect().width)), 286);
     assert.equal(await page.locator('#movie_player .ytp-chrome-bottom').evaluate(node => Math.round(node.getBoundingClientRect().height)), 48, 'native toolbar height is preserved');
     assert.equal(await page.locator('#movie_player .ytp-chrome-bottom').evaluate(node => Math.round(node.getBoundingClientRect().bottom - node.parentElement.getBoundingClientRect().bottom)), 0, 'native toolbar remains at the bottom');
-    assert.equal(await page.locator('#movie_player .ytp-right-controls .ytp-volume-area').count(), 1, 'volume moves to the right');
+    assert.equal(await page.locator('#movie_player .ytp-left-controls .ytp-volume-area').count(), 1, 'native volume stays in its original controls');
     assert.deepEqual(await page.locator('#movie_player .ytp-right-controls').evaluate(node => Array.from(node.children, item => item.className)), [
-      'ytp-autonav-toggle-button-container', 'ytp-volume-area vkvk-volume-control', 'ytp-button ytp-subtitles-button', 'ytp-button ytp-settings-button',
+      'ytp-autonav-toggle-button-container', 'vkvk-volume-control', 'ytp-button ytp-subtitles-button', 'ytp-button ytp-settings-button',
       'ytp-button ytp-miniplayer-button', 'ytp-button ytp-fullscreen-button', 'ytp-button ytp-remote-button',
     ]);
-    assert.equal(await page.locator('#movie_player .ytp-right-controls .ytp-volume-panel').evaluate(node => Math.round(node.getBoundingClientRect().width)), 52, 'volume slider stays visible');
+    assert.equal(await page.locator('#movie_player .vkvk-volume-slider').evaluate(node => Math.round(node.getBoundingClientRect().width)), 52, 'volume slider stays visible');
+    assert.equal(await page.locator('#movie_player .vkvk-volume-toggle').evaluate(node => getComputedStyle(node, '::before').width), '24px', 'one VK icon is drawn');
+    await page.locator('#movie_player .vkvk-volume-toggle').evaluate(node => node.click());
+    assert.equal(await page.locator('#movie_player video').evaluate(node => node.muted), true, 'custom mute controls the video');
+    assert.equal(await page.locator('#movie_player .vkvk-volume-control.vkvk-volume-muted').count(), 1);
+    await page.locator('#movie_player .vkvk-volume-slider').evaluate(node => { node.value = '35'; node.dispatchEvent(new Event('input', { bubbles: true })); });
+    assert.deepEqual(await page.locator('#movie_player video').evaluate(node => [node.muted, Math.round(node.volume * 100)]), [false, 35]);
     await page.evaluate(() => {
-      const left = document.querySelector('#movie_player .ytp-left-controls');
-      left.append(document.querySelector('#movie_player .ytp-volume-area'));
+      const right = document.querySelector('#movie_player .ytp-right-controls');
+      right.replaceChildren(...Array.from(right.children).filter(node => !node.classList.contains('vkvk-volume-control')));
     });
-    await page.waitForFunction(() => document.querySelector('#movie_player .ytp-right-controls .ytp-volume-area'));
+    await page.waitForFunction(() => document.querySelector('#movie_player .ytp-right-controls > .vkvk-volume-control'));
     await page.evaluate(() => {
       document.querySelector('#movie_player .ytp-volume-area').remove();
       const left = document.querySelector('#movie_player .ytp-left-controls');
       left.insertAdjacentHTML('beforeend', '<button class="ytp-button ytp-mute-button"><svg></svg></button><div class="ytp-volume-panel" style="width:0;opacity:0"></div>');
     });
-    await page.waitForFunction(() => document.querySelector('#movie_player .ytp-right-controls > .ytp-volume-panel'));
-    assert.deepEqual(await page.locator('#movie_player .ytp-right-controls').evaluate(node => Array.from(node.children, item => item.className).slice(0, 3)), [
-      'ytp-autonav-toggle-button-container', 'ytp-button ytp-mute-button vkvk-volume-control', 'ytp-volume-panel vkvk-volume-control',
-    ], 'separate native volume controls keep their order');
-    assert.equal(await page.locator('#movie_player .ytp-right-controls > .ytp-volume-panel').evaluate(node => Math.round(node.getBoundingClientRect().width)), 52);
+    await page.waitForFunction(() => document.querySelector('#movie_player .ytp-left-controls > .ytp-volume-panel'));
+    assert.equal(await page.locator('#movie_player .ytp-right-controls > .vkvk-volume-control').count(), 1, 'split native volume controls do not move');
     assert.match(await page.locator('#movie_player .ytp-play-button').evaluate(node => getComputedStyle(node, '::before').webkitMaskImage), /data:image\/svg\+xml/);
     assert.notEqual(await page.locator('#movie_player .ytp-remote-button').evaluate(node => getComputedStyle(node).display), 'none', 'cast stays available');
     await page.locator('#movie_player').evaluate(node => node.classList.add('ended-mode'));
@@ -290,7 +293,7 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
       const player = document.createElement('div');
       player.id = 'movie_player';
       player.className = 'html5-video-player ytp-fullscreen';
-      player.innerHTML = '<div class="html5-video-container"><video class="html5-main-video" style="position:absolute;inset:0;width:100%;height:100%"></video></div>';
+      player.innerHTML = '<div class="html5-video-container"><video class="html5-main-video" style="position:absolute;inset:0;width:100%;height:100%"></video></div><div class="ytp-chrome-bottom" style="position:absolute;top:0;height:48px"><div class="ytp-chrome-controls"><div class="ytp-left-controls"><button class="ytp-button ytp-play-button"><svg></svg></button><div class="ytp-volume-area"><button class="ytp-button ytp-mute-button"><svg></svg></button></div></div><div class="ytp-right-controls"><button class="ytp-button ytp-settings-button"><svg></svg></button><button class="ytp-button ytp-fullscreen-button"><svg></svg></button></div></div></div>';
       document.querySelector('ytd-watch-flexy')?.append(player);
       document.dispatchEvent(new Event('yt-navigate-finish'));
     });
@@ -301,6 +304,8 @@ test('YouTube shell keeps real links and follows SPA routes', async () => {
     assert.equal(await page.locator('ytd-watch-metadata').evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.locator('ytd-watch-flexy #secondary').evaluate(node => getComputedStyle(node).display), 'none');
     assert.equal(await page.evaluate(() => document.querySelector('#movie_player').contains(document.elementFromPoint(innerWidth / 2, innerHeight / 2))), true);
+    assert.ok(await page.locator('#movie_player .ytp-chrome-bottom').evaluate(node => Math.abs(node.getBoundingClientRect().bottom - innerHeight) < 2), 'fullscreen controls stay at the bottom');
+    assert.equal(await page.locator('#movie_player .vkvk-volume-control').count(), 1, 'volume is available in fullscreen');
     assert.deepEqual(await page.locator('#movie_player video').evaluate(node => {
       const style = getComputedStyle(node);
       const rect = node.getBoundingClientRect();

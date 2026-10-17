@@ -636,28 +636,64 @@ function filterPlayerSettings(): void {
   }
 }
 
-function arrangePlayerControls(): void {
+const volumeBoundVideos = new WeakSet<HTMLVideoElement>();
+function ensurePlayerVolumeControl(): void {
   const player = document.querySelector<HTMLElement>('#movie_player');
   const left = player?.querySelector<HTMLElement>('.ytp-left-controls');
   const right = player?.querySelector<HTMLElement>('.ytp-right-controls');
-  if (!left || !right) return;
-  const volume = left.querySelector<HTMLElement>('.ytp-volume-area');
-  const controls = volume ? [volume] : [
-    left.querySelector<HTMLElement>('.ytp-mute-button'),
-    left.querySelector<HTMLElement>('.ytp-volume-panel'),
-  ].filter((node): node is HTMLElement => Boolean(node));
-  if (!controls.length) return;
-  const autoplay = [...right.children].find(child =>
-    child.matches('.ytp-autonav-toggle-button-container,.ytp-autonav-toggle-button')
-    || Boolean(child.querySelector('.ytp-autonav-toggle-button'))
-  );
-  let anchor = autoplay || null;
-  for (const control of controls) {
-    control.classList.add('vkvk-volume-control');
-    if (anchor) anchor.after(control);
-    else right.prepend(control);
-    anchor = control;
+  const video = player?.querySelector<HTMLVideoElement>('video.html5-main-video');
+  if (!player || !left || !right || !video) return;
+  // Keep YouTube's volume nodes in their original parent. Its player positions
+  // and expands them there, so moving them makes the slider cover other buttons.
+  for (const node of right.querySelectorAll<HTMLElement>(':scope > .ytp-volume-area,:scope > .ytp-mute-button,:scope > .ytp-volume-panel')) {
+    node.classList.remove('vkvk-volume-control');
+    left.append(node);
   }
+  let control = right.querySelector<HTMLElement>(':scope > .vkvk-volume-control');
+  if (!control) {
+    control = element('div', 'vkvk-volume-control');
+    const toggle = element('button', 'vkvk-volume-toggle') as HTMLButtonElement;
+    toggle.type = 'button';
+    const slider = element('input', 'vkvk-volume-slider') as HTMLInputElement;
+    slider.type = 'range';
+    slider.min = '0';
+    slider.max = '100';
+    slider.step = '1';
+    slider.setAttribute('aria-label', 'Громкость');
+    control.append(toggle, slider);
+    toggle.addEventListener('click', event => {
+      event.stopPropagation();
+      const current = player.querySelector<HTMLVideoElement>('video.html5-main-video');
+      if (current) current.muted = !current.muted;
+    });
+    slider.addEventListener('input', event => {
+      event.stopPropagation();
+      const current = player.querySelector<HTMLVideoElement>('video.html5-main-video');
+      if (!current) return;
+      current.volume = Number(slider.value) / 100;
+      current.muted = current.volume === 0;
+    });
+    const autoplay = [...right.children].find(child =>
+      child.matches('.ytp-autonav-toggle-button-container,.ytp-autonav-toggle-button')
+      || Boolean(child.querySelector('.ytp-autonav-toggle-button'))
+    );
+    if (autoplay) autoplay.after(control);
+    else right.prepend(control);
+  }
+  const sync = () => {
+    const muted = video.muted || video.volume === 0;
+    control!.classList.toggle('vkvk-volume-muted', muted);
+    const toggle = control!.querySelector<HTMLButtonElement>('.vkvk-volume-toggle');
+    const slider = control!.querySelector<HTMLInputElement>('.vkvk-volume-slider');
+    if (toggle) toggle.setAttribute('aria-label', muted ? 'Включить звук' : 'Выключить звук');
+    if (slider) slider.value = String(Math.round(video.volume * 100));
+  };
+  if (!volumeBoundVideos.has(video)) {
+    video.addEventListener('volumechange', () => ensurePlayerVolumeControl());
+    volumeBoundVideos.add(video);
+  }
+  player.dataset.vkvkVolume = 'ready';
+  sync();
 }
 
 function decorateWatchPlayer(): void {
@@ -674,7 +710,7 @@ function decorateWatchPlayer(): void {
     panel.toggleAttribute('data-vkvk-invalid', /\bNaN\b/.test(text) || (!hasPlaylist && !hasVideos));
   }
   filterPlayerSettings();
-  arrangePlayerControls();
+  ensurePlayerVolumeControl();
   syncPlayerAspect();
   nudgePlayerLayout();
   decorateAdSkip();
@@ -1959,6 +1995,8 @@ function setEnabled(value: boolean): void {
   if (value) { installFonts(); lastUrl = ''; schedule(); return; }
   shell?.remove();
   shell = null;
+  document.querySelectorAll('#movie_player .vkvk-volume-control').forEach(node => node.remove());
+  document.querySelectorAll<HTMLElement>('#movie_player[data-vkvk-volume]').forEach(node => delete node.dataset.vkvkVolume);
   catalogKey = '';
   document.documentElement.classList.remove('vkvk-custom-catalog');
   if (addedDark) { document.documentElement.removeAttribute('dark'); addedDark = false; }
@@ -2042,11 +2080,11 @@ document.addEventListener('click', event => {
 new MutationObserver(records => {
   if (records.every(record => record.target.parentElement?.closest('#vkvk-site-shell, .vkvk-watch-views'))) return;
   if (enabled && contentRoute(location.pathname) === 'watch') {
-    const playerControls = '.ytp-chrome-controls,.ytp-left-controls,.ytp-right-controls,.ytp-volume-area,.ytp-mute-button,.ytp-volume-panel';
+    const playerControls = '.ytp-chrome-controls,.ytp-left-controls,.ytp-right-controls,.ytp-volume-area,.ytp-mute-button,.ytp-volume-panel,.vkvk-volume-control';
     const controlsChanged = records.some(record => record.type === 'childList'
       && [...record.addedNodes, ...record.removedNodes].some(node => node instanceof Element
         && (node.matches(playerControls) || Boolean(node.querySelector(playerControls)))));
-    if (controlsChanged) queueMicrotask(arrangePlayerControls);
+    if (controlsChanged) queueMicrotask(ensurePlayerVolumeControl);
   }
   const relevantSelector = [
     'ytd-app', 'ytd-page-manager', 'yt-lockup-view-model', 'shorts-lockup-view-model', 'ytm-shorts-lockup-view-model', 'ytd-rich-grid-media',

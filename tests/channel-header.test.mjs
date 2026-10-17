@@ -10,12 +10,15 @@ test('owner channel name and description clear the avatar and share one left edg
     await page.route('https://www.youtube.com/**', route => route.fulfill({
       contentType: 'text/html; charset=utf-8',
       body: `<!doctype html><html><body><ytd-app><ytd-page-manager><ytd-browse><yt-page-header-view-model>
+        <div class="ytPageHeaderViewModelBanner" style="height:240px"><yt-image-banner-view-model><img src="data:image/gif;base64,R0lGODlhAQABAIAAAACAgP///ywAAAAAAQABAAACAUwAOw=="></yt-image-banner-view-model></div>
+        <div class="ytPageHeaderViewModelHost" style="min-height:300px">
         <div class="ytPageHeaderViewModelHeadline">
           <yt-avatar-shape><img src="data:image/gif;base64,R0lGODlhAQABAIAAAACAgP///ywAAAAAAQABAAACAUwAOw=="></yt-avatar-shape>
           <div class="ytPageHeaderViewModelHeadlineInfo">
             <h1>РЫЖАЯ МОРДА</h1><div id="channel-handle">@РЫЖАЯМОРДА</div>
             <div class="yt-description-preview-view-model-wiz__description">ПОДПИШИСЬ — АДМИН ТЕБЯ НЕ ЗАБАНИТ!</div>
           </div>
+        </div>
         </div>
       </yt-page-header-view-model><ytd-rich-grid-renderer><div id="contents"></div></ytd-rich-grid-renderer></ytd-browse></ytd-page-manager></ytd-app></body></html>`,
     }));
@@ -34,6 +37,13 @@ test('owner channel name and description clear the avatar and share one left edg
     });
     assert.ok(positions.titleLeft >= positions.avatarRight + 16, JSON.stringify(positions));
     assert.ok(Math.abs(positions.titleLeft - positions.descriptionLeft) <= 2, JSON.stringify(positions));
+    const gaps = await page.evaluate(() => {
+      const banner = document.querySelector('.ytPageHeaderViewModelBanner').getBoundingClientRect();
+      const card = document.querySelector('.ytPageHeaderViewModelHost').getBoundingClientRect();
+      return { bannerHeight: banner.height, gap: card.top - banner.bottom, cardHeight: card.height };
+    });
+    assert.equal(gaps.bannerHeight, 148);
+    assert.ok(gaps.gap <= 8 && gaps.cardHeight < 200, JSON.stringify(gaps));
   } finally {
     await browser.close();
   }
